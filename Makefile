@@ -4,7 +4,7 @@ all: $(BIN_FILE)
 
 $(BIN_FILE): $(OBJS)
 	@mkdir -p $(BIN_DIR)
-	@$(GCC) $(OBJS) -o $(BIN_FILE)
+	@$(GCC) $(OBJS) $(LDFLAGS) -o $(BIN_FILE)
 
 %.o: %.c
 	$(GCC) $(GCCFLAGS) -c $< -o $@
