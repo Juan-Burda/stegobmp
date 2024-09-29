@@ -39,5 +39,6 @@ void free_parser(ArgParser *parser);
 Subcommand* add_subcommand(ArgParser *parser, const char *name);
 void add_argument(Subcommand *subcommand, const char *name, ArgType type, const char **choices, int choice_count);
 void parse_arguments(ArgParser *parser, int argc, char *argv[]);
+Argument* find_argument(Subcommand *subcommand, const char *name);
 
 #endif // _ARGUMENT_PARSER_H_
