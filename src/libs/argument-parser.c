@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "../../include/string-utils.h"
 #include "../../include/argument-parser.h"
+#include <cli-arguments.h>
 
 ArgParser* create_parser() {
     ArgParser *parser = malloc(sizeof(ArgParser));
