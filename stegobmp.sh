@@ -7,4 +7,4 @@ docker rmi -f stego
 docker build . -t stego
 
 # Run the container with the provided arguments
-docker run stego "$@"
+docker run --rm stego "$@"
