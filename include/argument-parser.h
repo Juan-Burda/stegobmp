@@ -4,10 +4,6 @@
 #include <string.h>
 #include <stdbool.h>
 
-#define MAX_ARGS 16
-#define MAX_ARG_LEN 128
-#define MAX_SUBCOMMANDS 2
-
 typedef enum {
     ARG_FLAG,
     ARG_STRING,

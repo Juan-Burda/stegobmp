@@ -1,13 +1,21 @@
 # stegobmp
 
-To compile the project simply run:
+## Running the project
 
-```
-docker build . -t stego
+### Normal run
+
+To run the project normally run:
+
+```bash
+./stegobmp.sh [args]
 ```
 
-Then, in order to execute the binary you have to run:
+### Debugging
 
+If you want to run the project with a GDB terminal run:
+
+```bash
+./debug.sh
 ```
-docker run --rm stego [args]
-```
+
+This will open a GDB terminal. To get help on GDB commands type `help`.
