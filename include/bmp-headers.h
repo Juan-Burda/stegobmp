@@ -30,3 +30,4 @@ typedef struct {
 #pragma pack(pop)
 
 #endif // BMP_HEADERS_H
+

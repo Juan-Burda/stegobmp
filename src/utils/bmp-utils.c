@@ -2,35 +2,7 @@
 #include <stdlib.h>
 #include "../../include/bmp-utils.h"
 
-#pragma pack(push, 1)
-// BMP File Header (14 bytes)
-typedef struct {
-    unsigned short bfType;      // BMP signature (should be 'BM')
-    unsigned int bfSize;        // File size in bytes
-    unsigned short bfReserved1; // Reserved, should be 0
-    unsigned short bfReserved2; // Reserved, should be 0
-    unsigned int bfOffBits;     // Offset to image data (pixel array)
-} BMPFileHeader;
-#pragma pack(pop)
-
-#pragma pack(push, 1)
-// BMP Info Header (40 bytes)
-typedef struct {
-    unsigned int biSize;         // Size of the info header (40 bytes)
-    int biWidth;                 // Width of the image
-    int biHeight;                // Height of the image
-    unsigned short biPlanes;     // Number of color planes (must be 1)
-    unsigned short biBitCount;   // Number of bits per pixel
-    unsigned int biCompression;  // Compression type (0 = uncompressed)
-    unsigned int biSizeImage;    // Image size in bytes (may be 0 for uncompressed images)
-    int biXPelsPerMeter;         // Horizontal resolution
-    int biYPelsPerMeter;         // Vertical resolution
-    unsigned int biClrUsed;      // Number of colors in the color palette
-    unsigned int biClrImportant; // Important colors (0 = all colors are important)
-} BMPInfoHeader;
-#pragma pack(pop)
-
-void readBMPHeader(const char *fileName) {
+void read_bmp_headers(const char *fileName) {
     FILE *file = fopen(fileName, "rb");
     if (!file) {
         perror("Error opening file");
@@ -40,20 +12,16 @@ void readBMPHeader(const char *fileName) {
     BMPFileHeader fileHeader;
     BMPInfoHeader infoHeader;
 
-    // Read file header
     fread(&fileHeader, sizeof(BMPFileHeader), 1, file);
 
-    // Verify that it's a BMP file by checking the signature
     if (fileHeader.bfType != 0x4D42) {
         printf("Not a valid BMP file.\n");
         fclose(file);
         return;
     }
 
-    // Read info header
     fread(&infoHeader, sizeof(BMPInfoHeader), 1, file);
 
-    // Print BMP metadata
     printf("File Size: %u bytes\n", fileHeader.bfSize);
     printf("Image Width: %d pixels\n", infoHeader.biWidth);
     printf("Image Height: %d pixels\n", infoHeader.biHeight);
@@ -63,3 +31,78 @@ void readBMPHeader(const char *fileName) {
 
     fclose(file);
 }
+
+uint8_t* read_bmp_data(const char* fileName, BMPFileHeader* fileHeader, BMPInfoHeader* infoHeader) {
+    FILE *file = fopen(fileName, "rb");
+    if (!file) {
+        perror("Error opening file");
+        return NULL;
+    }
+
+    fread(fileHeader, sizeof(BMPFileHeader), 1, file);
+
+    if (fileHeader->bfType != 0x4D42) {
+        printf("Not a valid BMP file.\n");
+        fclose(file);
+        return NULL;
+    }
+
+    fread(infoHeader, sizeof(BMPInfoHeader), 1, file);
+
+    fseek(file, fileHeader->bfOffBits, SEEK_SET);
+
+    uint8_t* pixelData = (uint8_t*)malloc(infoHeader->biSizeImage);
+    if (!pixelData) {
+        printf("Error: Memory allocation failed!\n");
+        fclose(file);
+        return NULL;
+    }
+
+    fread(pixelData, infoHeader->biSizeImage, 1, file);
+
+    fclose(file);
+
+    return pixelData;
+}
+
+void print_bmp_data(uint8_t* data, int width, int height, int bitCount) {
+    if (bitCount != 24) {
+        printf("This function only supports 24-bit BMP files.\n");
+        return;
+    }
+
+    for (int y = height - 1; y >= 0; y--) {
+        for (int x = 0; x < width; x++) {
+            int index = (y * width + x) * 3;
+
+            uint8_t blue = data[index];
+            uint8_t green = data[index + 1];
+            uint8_t red = data[index + 2];
+
+            printf("(%3u, %3u, %3u) ", red, green, blue);
+        }
+        printf("\n");
+    }
+}
+
+void write_bmp(const char *fileName, BMPFileHeader *fileHeader, BMPInfoHeader *infoHeader, uint8_t *data) {
+    FILE *file = fopen(fileName, "wb");
+    if (!file) {
+        perror("Error opening file for writing");
+        return;
+    }
+
+    fwrite(fileHeader, sizeof(BMPFileHeader), 1, file);
+
+    fwrite(infoHeader, sizeof(BMPInfoHeader), 1, file);
+
+    int rowSize = ((infoHeader->biWidth * 3) + 3) & ~3;
+
+    for (int y = 0; y < infoHeader->biHeight; y++) {
+        fwrite(&data[y * rowSize], 1, rowSize, file);
+    }
+
+    fclose(file);
+    printf("BMP saved successfully: %s\n", fileName);
+}
+
