@@ -7,4 +7,4 @@ docker rmi -f stego
 docker build . -t stego
 
 # Run the container with the provided arguments
-docker run --rm stego "$@"
+docker run --rm -v "$PWD/resources:/usr/src/app/resources" stego "$@"
