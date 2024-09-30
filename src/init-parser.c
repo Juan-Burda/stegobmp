@@ -24,7 +24,7 @@ ArgParser* init_steganography_parser() {
     // Embed subcommand
     Subcommand *embed = add_subcommand(parser, "-embed");
 
-    add_argument(embed, ARG_INPUT, ARG_STRING, NULL, 0);
+    add_argument(embed, ARG_CARRIER, ARG_STRING, NULL, 0);
     add_argument(embed, ARG_PAYLOAD, ARG_STRING, NULL, 0);
     add_argument(embed, ARG_OUTPUT, ARG_STRING, NULL, 0);
     add_argument(embed, ARG_STEGANOGRAPHY, ARG_CHOICE, steg_choices, steg_count);

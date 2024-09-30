@@ -12,9 +12,9 @@
 #define ARG_STEGANOGRAPHY "steg"
 #define ARG_ENCRYPTION "a"
 #define ARG_MODE "m"
-#define ARG_INPUT "in"
+#define ARG_PAYLOAD "in"
 #define ARG_OUTPUT "out"
-#define ARG_PAYLOAD "p"
+#define ARG_CARRIER "p"
 
 #define ARG_FLAG 0
 #define ARG_STRING 1
