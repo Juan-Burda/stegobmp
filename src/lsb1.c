@@ -6,7 +6,7 @@
 #include "../include/file-utils.h"
 #include "../include/lsb1.h"
 
-void lsb1(uint8_t* data, int width, int height, int bitCount, const char* message) {
+void lsb1(uint8_t* data, int width, int height, int bitCount, const char* message, size_t maxMessageLength) {
     if (bitCount != BITS_PER_PIXEL) {
         printf("This function only supports 24-bit BMP files.\n");
         return;
@@ -17,8 +17,8 @@ void lsb1(uint8_t* data, int width, int height, int bitCount, const char* messag
     int messageBitIndex = 0;
     uint8_t currentChar = message[messageIndex];
 
-    for (int y = 0; y < height && message[messageIndex] != '\0'; y++) {
-        for (int x = 0; x < width && message[messageIndex] != '\0'; x++) {
+    for (int y = 0; y < height && messageIndex < maxMessageLength - 1; y++) {
+        for (int x = 0; x < width && messageIndex < maxMessageLength - 1; x++) {
             int pixelIndex = (y * rowSize) + (x * BYTES_PER_PIXEL);
 
             for (int color = 0; color < BYTES_PER_PIXEL; color++) {
@@ -35,15 +35,9 @@ void lsb1(uint8_t* data, int width, int height, int bitCount, const char* messag
             }
         }
     }
-
-    if (message[messageIndex] == '\0') {
-        printf("Message embedded successfully!\n");
-    } else {
-        printf("Warning: Image is too small to embed the full message.\n");
-    }
 }
 
-void lsb1_extract(uint8_t* data, int width, int height, int bitCount, char* extractedMessage, int maxMessageLength) {
+void lsb1_extract(uint8_t* data, int width, int height, int bitCount, char* extractedMessage, size_t maxMessageLength) {
     if (bitCount != 24) {
         printf("This function only supports 24-bit BMP files.\n");
         return;
@@ -64,20 +58,17 @@ void lsb1_extract(uint8_t* data, int width, int height, int bitCount, char* extr
                 currentChar |= (bit << messageBitIndex);
                 messageBitIndex++;
 
-                if (messageBitIndex == BITS_PER_BYTE) { 
-                    if (currentChar == '\0') {
-                        extractedMessage[messageIndex] = '\0';
-                        printf("Extracted message: %s\n", extractedMessage);
-                        return;
-                    }
+                if (messageBitIndex == BITS_PER_BYTE) {
                     extractedMessage[messageIndex++] = currentChar;
+
                     messageBitIndex = 0;
                     currentChar = 0;
+
+                    if (messageIndex >= maxMessageLength - 1) {
+                        break;
+                    }
                 }
             }
         }
     }
-
-    extractedMessage[messageIndex] = '\0';
-    printf("Extracted message: %s\n", extractedMessage);
 }
