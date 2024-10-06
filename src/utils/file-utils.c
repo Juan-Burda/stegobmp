@@ -1,16 +1,15 @@
-#include <stdio.h>
+#include <constants/bmp.h>
+#include <file-utils.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../../include/file-utils.h"
-#include "../../include/constants/bmp.h"
 
-const char * get_file_extension(const char *filename) {
+const char *get_file_extension(const char *filename) {
     const char *dot = strrchr(filename, '.');
-    
+
     if (!dot || dot == filename) {
         return "";
     }
-    
+
     return dot;
 }
 
@@ -21,7 +20,7 @@ size_t get_file_size(FILE *file) {
     return size;
 }
 
-unsigned char* fmt_payload(const char *filename, size_t *payload_length) {
+unsigned char *fmt_payload(const char *filename, size_t *payload_length) {
     FILE *file = fopen(filename, "rb");
     if (file == NULL) {
         perror("Error opening file");
@@ -33,7 +32,7 @@ unsigned char* fmt_payload(const char *filename, size_t *payload_length) {
     size_t ext_size = strlen(extension);
 
     size_t total_size = sizeof(size_t) + file_size + ext_size + 1;
-    unsigned char *payload = (unsigned char*)malloc(total_size);
+    unsigned char *payload = (unsigned char *)malloc(total_size);
     if (payload == NULL) {
         perror("Memory allocation failed");
         fclose(file);
@@ -47,21 +46,21 @@ unsigned char* fmt_payload(const char *filename, size_t *payload_length) {
     payload[sizeof(size_t) + file_size + ext_size] = '\0';
 
     fclose(file);
-    
+
     *payload_length = total_size;
 
     return payload;
 }
 
-size_t dfmt_payload(unsigned char* payload, unsigned char* content, unsigned char* extension) {
+size_t dfmt_payload(unsigned char *payload, unsigned char *content, unsigned char *extension) {
     size_t file_size = 0;
 
     memcpy(&file_size, payload, sizeof(size_t));
 
     memcpy(content, payload + sizeof(size_t), file_size);
 
-    unsigned char* extension_pos = payload + sizeof(size_t) + file_size;
-    memcpy(extension, extension_pos, strlen(extension_pos) + 1);
+    unsigned char *extension_pos = payload + sizeof(size_t) + file_size;
+    memcpy(extension, extension_pos, strlen((char *)extension_pos) + 1);
 
     return file_size;
 }

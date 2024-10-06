@@ -1,6 +1,6 @@
 FROM gcc:14-bookworm
 
-RUN apt-get update && apt-get install -y gdb
+RUN apt-get update && apt-get install -y gdb && apt install libssl-dev -y
 
 WORKDIR /usr/src/app
 
