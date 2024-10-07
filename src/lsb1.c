@@ -6,65 +6,65 @@
 #include "../include/file-utils.h"
 #include "../include/lsb1.h"
 
-void lsb1(uint8_t* data, int width, int height, int bitCount, const char* message, size_t maxMessageLength) {
+void lsb1(uint8_t* data, int width, int height, int bitCount, const char* payload, size_t payloadLength) {
     if (bitCount != BITS_PER_PIXEL) {
         printf("This function only supports 24-bit BMP files.\n");
         return;
     }
 
     int rowSize = CALCULATE_ROW_SIZE(width);
-    int messageIndex = 0;
-    int messageBitIndex = 0;
-    uint8_t currentChar = message[messageIndex];
+    int payloadIndex = 0;
+    int payloadBitIndex = 0;
+    uint8_t currentChar = payload[payloadIndex];
 
-    for (int y = 0; y < height && messageIndex < maxMessageLength - 1; y++) {
-        for (int x = 0; x < width && messageIndex < maxMessageLength - 1; x++) {
+    for (int y = 0; y < height && payloadIndex < payloadLength - 1; y++) {
+        for (int x = 0; x < width && payloadIndex < payloadLength - 1; x++) {
             int pixelIndex = (y * rowSize) + (x * BYTES_PER_PIXEL);
 
             for (int color = 0; color < BYTES_PER_PIXEL; color++) {
-                int bitToEmbed = (currentChar >> messageBitIndex) & 1;
+                int bitToEmbed = (currentChar >> payloadBitIndex) & 1;
 
                 data[pixelIndex + color] = (data[pixelIndex + color] & 0xFE) | bitToEmbed;
 
-                messageBitIndex++;
-                if (messageBitIndex == BITS_PER_BYTE) {
-                    messageBitIndex = 0;
-                    messageIndex++;
-                    currentChar = message[messageIndex];
+                payloadBitIndex++;
+                if (payloadBitIndex == BITS_PER_BYTE) {
+                    payloadBitIndex = 0;
+                    payloadIndex++;
+                    currentChar = payload[payloadIndex];
                 }
             }
         }
     }
 }
 
-void lsb1_extract(uint8_t* data, int width, int height, int bitCount, char* extractedMessage, size_t maxMessageLength) {
+void lsb1_extract(uint8_t* data, int width, int height, int bitCount, char* extractedPayload, size_t payloadLength) {
     if (bitCount != 24) {
         printf("This function only supports 24-bit BMP files.\n");
         return;
     }
 
     int rowSize = CALCULATE_ROW_SIZE(width);
-    int messageIndex = 0;
-    int messageBitIndex = 0;
+    int payloadIndex = 0;
+    int payloadBitIndex = 0;
     uint8_t currentChar = 0;
 
-    for (int y = 0; y < height && messageIndex < maxMessageLength - 1; y++) {
-        for (int x = 0; x < width && messageIndex < maxMessageLength - 1; x++) {
+    for (int y = 0; y < height && payloadIndex < payloadLength - 1; y++) {
+        for (int x = 0; x < width && payloadIndex < payloadLength - 1; x++) {
             int pixelIndex = (y * rowSize) + (x * BYTES_PER_PIXEL);
 
             for (int color = 0; color < BYTES_PER_PIXEL; color++) {
                 int bit = data[pixelIndex + color] & 1;
 
-                currentChar |= (bit << messageBitIndex);
-                messageBitIndex++;
+                currentChar |= (bit << payloadBitIndex);
+                payloadBitIndex++;
 
-                if (messageBitIndex == BITS_PER_BYTE) {
-                    extractedMessage[messageIndex++] = currentChar;
+                if (payloadBitIndex == BITS_PER_BYTE) {
+                    extractedPayload[payloadIndex++] = currentChar;
 
-                    messageBitIndex = 0;
+                    payloadBitIndex = 0;
                     currentChar = 0;
 
-                    if (messageIndex >= maxMessageLength - 1) {
+                    if (payloadIndex >= payloadLength - 1) {
                         break;
                     }
                 }
