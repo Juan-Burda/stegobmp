@@ -51,7 +51,7 @@ uint8_t* read_bmp_data(const char* fileName, BMPFileHeader* fileHeader, BMPInfoH
 
     fseek(file, fileHeader->bfOffBits, SEEK_SET);
 
-    uint8_t* pixelData = (uint8_t*)malloc(infoHeader->biSizeImage);
+    uint8_t* pixelData = (uint8_t*)malloc(fileHeader->bfSize);
     if (!pixelData) {
         printf("Error: Memory allocation failed!\n");
         fclose(file);
