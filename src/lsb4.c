@@ -12,6 +12,12 @@ void lsb4(uint8_t* data, int width, int height, int bitCount, const char* payloa
         return;
     }
 
+     if (payloadLength * 4 > width * height * BITS_PER_PIXEL) {
+        printf("Error embedding payload: payload too long.\n");  
+        exit(1);
+        return;
+    }
+
     int rowSize = CALCULATE_ROW_SIZE(width);
     int payloadIndex = 0;
     int payloadBitIndex = 0;
