@@ -3,6 +3,7 @@
 #include <ssl-utils.h>
 #include <stdio.h>
 #include <subcommands.h>
+#include <stdint.h>
 
 // TODO: delete
 void example_encrypt_decrypt();
