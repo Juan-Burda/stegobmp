@@ -2,10 +2,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <ssl-utils.h>
 #include "../../include/subcommands.h"
 #include "../../include/constants/cli-arguments.h"
 #include "../include/bmp-utils.h"
 #include "../include/lsb1.h"
+#include "../include/lsb4.h"
 #include "../include/bmp-utils.h"
 #include "../include/file-utils.h"
 
@@ -57,17 +59,40 @@ void embed_subcommand(ArgParser *parser) {
     BMPFileHeader fileHeader;
     BMPInfoHeader infoHeader;
 
-    // Embed data
     uint8_t* bmpData = read_bmp_data(bmpFilePath, &fileHeader, &infoHeader);
     if (!bmpData)
         exit(1);
 
     const size_t payloadLength;
-    const char* payload = fmt_payload(payloadFilePath, &payloadLength);
+    const unsigned char* payload = fmt_payload(payloadFilePath, &payloadLength);
 
-    lsb1(bmpData, infoHeader.biWidth, infoHeader.biHeight, infoHeader.biBitCount, payload, payloadLength);
+    Argument* encMethodArg = find_argument(parser->current_subcommand, ARG_ENCRYPTION);
+    Argument* chainingModeArg = find_argument(parser->current_subcommand, ARG_MODE);
+    Argument* passwordArg = find_argument(parser->current_subcommand, ARG_PASSWORD);
+
+    CipherParams *cipherParams = init_cipher_params(passwordArg->value, encMethodArg->value, chainingModeArg->value);
+
+    uint8_t *encryptedPayload = NULL;
+    size_t encryptedPayloadLength = encrypt(cipherParams, payload, payloadLength, &encryptedPayload);
+
+    const unsigned char* fmtEncryptedPayload = fmt_encrypted_payload(encryptedPayload, &encryptedPayloadLength);
+
+    Argument* stegMethodArg = find_argument(parser->current_subcommand, ARG_STEGANOGRAPHY);
+    if (strcmp(stegMethodArg->value, "lsb4") == 0) {
+        lsb4(bmpData, infoHeader.biWidth, infoHeader.biHeight, infoHeader.biBitCount, fmtEncryptedPayload, encryptedPayloadLength);
+    } else if (strcmp(stegMethodArg->value, "lsb1") == 0) {
+        lsb1(bmpData, infoHeader.biWidth, infoHeader.biHeight, infoHeader.biBitCount, fmtEncryptedPayload, encryptedPayloadLength);
+    } else {
+        fprintf(stderr, "Error: El método de esteganografía debe ser 'lsb1' o 'lsb4'.\n");
+        exit(1);
+    }
 
     write_bmp(bmpFilePathOutput, &fileHeader, &infoHeader, bmpData);
+
+    free_cipher_params(cipherParams);
+
+    free(encryptedPayload);
+    free(fmtEncryptedPayload);
 
     free(bmpData);
     free(payload);

@@ -8,6 +8,8 @@ const char *get_file_extension(const char *filename);
 
 size_t get_file_size(FILE *file);
 
+unsigned char* fmt_encrypted_payload(const char* encryptedPayload, size_t *encryptedPayloadLength);
+
 unsigned char *fmt_payload(const char *filename, size_t *payload_length);
 
 size_t dfmt_payload(unsigned char *payload, unsigned char *content, unsigned char *extension);

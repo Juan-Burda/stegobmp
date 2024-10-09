@@ -9,13 +9,12 @@
 void lsb1(uint8_t* data, int width, int height, int bitCount, const char* payload, size_t payloadLength) {
     if (bitCount != BITS_PER_PIXEL) {
         printf("This function only supports 24-bit BMP files.\n");
-        return;
+        exit(1);
     }
 
     if (payloadLength * BITS_PER_BYTE > width * height * BITS_PER_PIXEL) {
         printf("Error embedding payload: payload too long.\n");  
         exit(1);
-        return;
     }
 
     int rowSize = CALCULATE_ROW_SIZE(width);

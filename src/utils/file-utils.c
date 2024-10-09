@@ -20,6 +20,21 @@ size_t get_file_size(FILE *file) {
     return size;
 }
 
+unsigned char* fmt_encrypted_payload(const char* encryptedPayload, size_t *encryptedPayloadLength) {
+    size_t totalSize = sizeof(size_t) + *encryptedPayloadLength;
+    unsigned char* payload = (unsigned char*)malloc(totalSize);
+    if (payload == NULL) {
+        perror("Memory allocation failed");
+        return NULL;
+    }
+    memcpy(payload, encryptedPayloadLength, sizeof(size_t));
+    memcpy(payload + sizeof(size_t), encryptedPayload, *encryptedPayloadLength);
+
+    *encryptedPayloadLength = totalSize;
+
+    return payload; 
+}
+
 unsigned char *fmt_payload(const char *filename, size_t *payload_length) {
     FILE *file = fopen(filename, "rb");
     if (file == NULL) {
