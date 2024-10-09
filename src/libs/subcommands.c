@@ -8,6 +8,7 @@
 #include "../include/bmp-utils.h"
 #include "../include/lsb1.h"
 #include "../include/lsb4.h"
+#include "../include/lsbi.h"
 #include "../include/bmp-utils.h"
 #include "../include/file-utils.h"
 
@@ -82,7 +83,10 @@ void embed_subcommand(ArgParser *parser) {
         lsb4(bmpData, infoHeader.biWidth, infoHeader.biHeight, infoHeader.biBitCount, fmtEncryptedPayload, encryptedPayloadLength);
     } else if (strcmp(stegMethodArg->value, "lsb1") == 0) {
         lsb1(bmpData, infoHeader.biWidth, infoHeader.biHeight, infoHeader.biBitCount, fmtEncryptedPayload, encryptedPayloadLength);
-    } else {
+    } else if (strcmp(stegMethodArg->value, "lsbi") == 0) {
+        lsbi(bmpData, infoHeader.biWidth, infoHeader.biHeight, infoHeader.biBitCount, fmtEncryptedPayload, encryptedPayloadLength);
+    } 
+    else {
         fprintf(stderr, "Error: El método de esteganografía debe ser 'lsb1' o 'lsb4'.\n");
         exit(1);
     }
