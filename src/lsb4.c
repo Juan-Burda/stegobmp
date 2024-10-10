@@ -23,8 +23,8 @@ void lsb4(uint8_t* data, int width, int height, int bitCount, const char* payloa
     int payloadBitIndex = 0;
     uint8_t currentChar = payload[payloadIndex];
 
-    for (int y = 0; y < height && payloadIndex < payloadLength - 1; y++) {
-        for (int x = 0; x < width && payloadIndex < payloadLength - 1; x++) {
+    for (int y = 0; y < height && payloadIndex < payloadLength; y++) {
+        for (int x = 0; x < width && payloadIndex < payloadLength; x++) {
             int pixelIndex = (y * rowSize) + (x * BYTES_PER_PIXEL);
 
             for (int color = 0; color < BYTES_PER_PIXEL; color++) {
@@ -35,8 +35,8 @@ void lsb4(uint8_t* data, int width, int height, int bitCount, const char* payloa
                 payloadBitIndex += 4;
                 if (payloadBitIndex >= BITS_PER_BYTE) {
                     payloadBitIndex = 0;
-                    payloadIndex++;
                     currentChar = payload[payloadIndex];
+                    payloadIndex++;
                 }
             }
         }
@@ -54,8 +54,8 @@ void lsb4_extract(uint8_t* data, int width, int height, int bitCount, char* extr
     int payloadBitIndex = 0;
     uint8_t currentChar = 0;
 
-    for (int y = 0; y < height && payloadIndex < payloadLength - 1; y++) {
-        for (int x = 0; x < width && payloadIndex < payloadLength - 1; x++) {
+    for (int y = 0; y < height && payloadIndex < payloadLength; y++) {
+        for (int x = 0; x < width && payloadIndex < payloadLength; x++) {
             int pixelIndex = (y * rowSize) + (x * BYTES_PER_PIXEL);
 
             for (int color = 0; color < BYTES_PER_PIXEL; color++) {
@@ -70,7 +70,7 @@ void lsb4_extract(uint8_t* data, int width, int height, int bitCount, char* extr
                     payloadBitIndex = 0;
                     currentChar = 0;
 
-                    if (payloadIndex >= payloadLength - 1) {
+                    if (payloadIndex >= payloadLength) {
                         break;
                     }
                 }

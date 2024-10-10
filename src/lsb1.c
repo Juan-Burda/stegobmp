@@ -38,8 +38,8 @@ void _lsb1(uint8_t* data, int width, int height, int bitCount, const char* paylo
                 payloadBitIndex++;
                 if (payloadBitIndex == BITS_PER_BYTE) {
                     payloadBitIndex = 0;
-                    payloadIndex++;
                     currentChar = payload[payloadIndex];
+                    payloadIndex++;
                 }
             }
         }
