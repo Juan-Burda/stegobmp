@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "../../include/string-utils.h"
 #include "../../include/argument-parser.h"
+#include "../../include/constants/error-messages.h"
 #include <cli-arguments.h>
 
 ArgParser* create_parser() {
@@ -15,8 +16,8 @@ ArgParser* create_parser() {
 
 Subcommand* add_subcommand(ArgParser *parser, const char *name) {
     if (parser->subcommand_count >= 2) {
-        fprintf(stderr, "Error: Maximum number of subcommands %d reached\n", MAX_SUBCOMMANDS);
-        exit(EXIT_FAILURE);
+        LOG_ERROR_MSG(TOO_MANY_SUBCOMMANDS, MAX_SUBCOMMANDS);
+        return NULL;
     }
 
     Subcommand *subcommand = &parser->subcommands[parser->subcommand_count++];
@@ -64,7 +65,7 @@ Argument* find_argument(Subcommand *subcommand, const char *name) {
 
 int parse_arguments(ArgParser *parser, int argc, char *argv[]) {
     if (argc < 2) {
-        fprintf(stderr, "Error: No subcommand provided\n");
+        LOG_ERROR_MSG(NO_SUBCOMMAND);
         return -1;
     }
 
@@ -76,7 +77,7 @@ int parse_arguments(ArgParser *parser, int argc, char *argv[]) {
     }
 
     if (!parser->current_subcommand) {
-        fprintf(stderr, "Error: Unknown subcommand %s\n", argv[1]);
+        LOG_ERROR_MSG(UNKNOWN_SUBCOMMAND, argv[1]);
         return -1;
     }
 
@@ -98,8 +99,7 @@ int parse_arguments(ArgParser *parser, int argc, char *argv[]) {
                         break;
                 }
             } else {
-                fprintf(stderr, "Unknown argument: %s\n", argv[i]);
-                return -1;
+                LOG_ERROR_MSG(UNKNOWN_ARGUMENT, argv[i]);
             }
         }
     }
@@ -107,7 +107,7 @@ int parse_arguments(ArgParser *parser, int argc, char *argv[]) {
     for (int i = 0; i < parser->current_subcommand->arg_count; i++) {
         Argument *arg = &parser->current_subcommand->args[i];
         if (arg->is_required && !arg->is_set) {
-            printf("Missing required argument: %s \n", arg->name);
+            LOG_ERROR_MSG(MISSING_REQUIRED_ARGUMENT, arg->name);
             return -1;
         }
     }

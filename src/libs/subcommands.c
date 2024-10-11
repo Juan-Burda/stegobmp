@@ -11,6 +11,9 @@
 #include "../include/lsb1.h"
 #include "../include/lsb4.h"
 #include "../include/lsbi.h"
+#include "../include/bmp-utils.h"
+#include "../include/file-utils.h"
+#include "../include/constants/error-messages.h"
 
 typedef void (*SubcommandFunction)(ArgParser *parser);
 
@@ -41,8 +44,6 @@ void run_subcommand(ArgParser *parser) {
             return;
         }
     }
-
-    fprintf(stderr, "Error: Subcomando desconocido '%s'.\n", subcommand_name);
 }
 
 void embed_subcommand(ArgParser *parser) {
@@ -97,7 +98,7 @@ void embed_subcommand(ArgParser *parser) {
     } else if (strcmp(stego_method, "lsbi") == 0) {
         lsbi(carrier_data, biWidth, biHeight, biBitCount, payload_encrypted_data, payload_encrypted_data_length);
     } else {
-        fprintf(stderr, "Error: El método de esteganografía debe ser 'lsb1', 'lsb4' o 'lsbi'.\n");
+        LOG_ERROR_MSG(INVALID_STEG_METHOD);
         exit(1);
     }
 
@@ -152,7 +153,7 @@ void extract_subcommand(ArgParser *parser) {
     } else if (strcmp(stego_method, "lsbi") == 0) {
         lsbi_extract(carrier_data, biWidth, biHeight, biBitCount, payload_encrypted_data_length_buffer, sizeof(size_t));
     } else {
-        fprintf(stderr, "Error: El método de esteganografía debe ser 'lsb1', 'lsb4' o 'lsbi'.\n");
+        LOG_ERROR_MSG(INVALID_STEG_METHOD);
         free(carrier_data);
         exit(1);
     }
