@@ -74,15 +74,28 @@ size_t fmt_data(const char *filename, uint8_t** payload_data) {
     return total_size;
 }
 
-size_t dfmt_payload(unsigned char *payload, unsigned char *content, unsigned char *extension) {
+size_t dfmt_data(unsigned char *payload_data, unsigned char **content, unsigned char **extension) {
     size_t file_size = 0;
 
-    memcpy(&file_size, payload, sizeof(size_t));
+    memcpy(&file_size, payload_data, sizeof(size_t));
 
-    memcpy(content, payload + sizeof(size_t), file_size);
+    *content = (unsigned char *)malloc(file_size);
+    if (*content == NULL) {
+        perror("Memory allocation failed"); 
+        return -1;
+    }
+    memcpy(content, payload_data + sizeof(size_t), file_size);
 
-    unsigned char *extension_pos = payload + sizeof(size_t) + file_size;
-    memcpy(extension, extension_pos, strlen((char *)extension_pos) + 1);
+    
+    unsigned char *extension_pos = payload_data + sizeof(size_t) + file_size;
+    size_t extension_length = strlen((char *)extension_pos) + 1;
+    *extension = (unsigned char *)malloc(extension_length);
+    if (*extension == NULL) {
+        perror("Memory allocation failed"); 
+        return -1;
+    }
+    
+    memcpy(extension, extension_pos, extension_length);
 
     return file_size;
 }

@@ -15,7 +15,7 @@ size_t fmt_data(const char *filename, uint8_t** payload_data);
 
 unsigned char* dfmt_encrypted_payload(const char* encryptedPayload, size_t *encryptedPayloadLength);
 
-size_t dfmt_payload(unsigned char *payload, unsigned char *content, unsigned char *extension);
+size_t dfmt_data(unsigned char *payload_data, unsigned char **content, unsigned char **extension);
 
 void create_file(const char *filename);
 
