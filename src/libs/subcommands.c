@@ -47,61 +47,71 @@ void run_subcommand(ArgParser *parser) {
 }
 
 void embed_subcommand(ArgParser *parser) {
-    Argument* bmpFilePathArg = find_argument(parser->current_subcommand, ARG_CARRIER);
-    Argument* payloadFilePathArg = find_argument(parser->current_subcommand, ARG_PAYLOAD);
+    // Get file arguments
+    Argument* carrier_filepath_arg = find_argument(parser->current_subcommand, ARG_CARRIER);
+    Argument* payload_data_filepath_arg = find_argument(parser->current_subcommand, ARG_PAYLOAD);
+    Argument* output_filepath_arg = find_argument(parser->current_subcommand, ARG_OUTPUT);
 
-    Argument* bmpFilePathOutputArg = find_argument(parser->current_subcommand, ARG_OUTPUT);
+    const unsigned char *carrier_filepath =  (unsigned char*)carrier_filepath_arg->value;
+    const unsigned char *payload_data_filepath = (unsigned char*)payload_data_filepath_arg->value;
+    const unsigned char *output_filepath = (unsigned char*)output_filepath_arg->value;
 
-    const unsigned char *bmpFilePath =  (unsigned char*)bmpFilePathArg->value;
-    const unsigned char *payloadFilePath = (unsigned char*)payloadFilePathArg->value;
-    const unsigned char *bmpFilePathOutput = (unsigned char*)bmpFilePathOutputArg->value;
-    const unsigned char *outputFileName = "resources/output";
+    // Get encryption arguments
+    Argument* encryption_method_arg = find_argument(parser->current_subcommand, ARG_ENCRYPTION);
+    Argument* chaining_mode_arg = find_argument(parser->current_subcommand, ARG_MODE);
+    Argument* encryption_password_arg = find_argument(parser->current_subcommand, ARG_PASSWORD);
 
-    BMPFileHeader fileHeader;
-    BMPInfoHeader infoHeader;
+    CipherParams *cipher_params = init_cipher_params(encryption_password_arg->value, encryption_method_arg->value, chaining_mode_arg->value);
 
-    uint8_t* bmpData = read_bmp_data(bmpFilePath, &fileHeader, &infoHeader);
-    if (!bmpData)
+    // Get steganography method argument
+    Argument* stego_method_arg = find_argument(parser->current_subcommand, ARG_STEGANOGRAPHY);
+    const unsigned char* stego_method = (unsigned char*) stego_method_arg->value;
+
+    // Get carrier data (carrier must be a BMP file)
+    BMPFileHeader carrier_file_header;
+    BMPInfoHeader carrier_info_header;
+
+    uint8_t* carrier_data = read_bmp_data(carrier_filepath, &carrier_file_header, &carrier_info_header);
+    if (!carrier_data)
         exit(1);
+    
+    // Get payload data
+    uint8_t *payload_data = NULL;
+    const size_t payload_data_length = fmt_data(payload_data_filepath, &payload_data);
+   
+    // Encrypt data
+    uint8_t *encrypted_data = NULL;
+    const size_t encrypted_data_length = encrypt(cipher_params, payload_data, payload_data_length, &encrypted_data);
 
-    const size_t payloadLength;
-    const unsigned char* payload = fmt_payload(payloadFilePath, &payloadLength);
+    // Format encrypted data
+    uint8_t *payload_encrypted_data = NULL;
+    const size_t payload_encrypted_data_length = fmt_encrypted_data(encrypted_data, encrypted_data_length, &payload_encrypted_data);
 
-    Argument* encMethodArg = find_argument(parser->current_subcommand, ARG_ENCRYPTION);
-    Argument* chainingModeArg = find_argument(parser->current_subcommand, ARG_MODE);
-    Argument* passwordArg = find_argument(parser->current_subcommand, ARG_PASSWORD);
+    int biWidth = carrier_info_header.biWidth;
+    int biHeight = carrier_info_header.biHeight;
+    int biBitCount = carrier_info_header.biBitCount;
 
-    CipherParams *cipherParams = init_cipher_params(passwordArg->value, encMethodArg->value, chainingModeArg->value);
-
-    uint8_t *encryptedPayload = NULL;
-    size_t encryptedPayloadLength = encrypt(cipherParams, payload, payloadLength, &encryptedPayload);
-
-    const unsigned char* fmtEncryptedPayload = fmt_encrypted_payload(encryptedPayload, &encryptedPayloadLength);
-
-    Argument* stegMethodArg = find_argument(parser->current_subcommand, ARG_STEGANOGRAPHY);
-    if (strcmp(stegMethodArg->value, "lsb4") == 0) {
-        lsb4(bmpData, infoHeader.biWidth, infoHeader.biHeight, infoHeader.biBitCount, fmtEncryptedPayload, encryptedPayloadLength);
-    } else if (strcmp(stegMethodArg->value, "lsb1") == 0) {
-        lsb1(bmpData, infoHeader.biWidth, infoHeader.biHeight, infoHeader.biBitCount, fmtEncryptedPayload, encryptedPayloadLength);
-    } else if (strcmp(stegMethodArg->value, "lsbi") == 0) {
-        lsbi(bmpData, infoHeader.biWidth, infoHeader.biHeight, infoHeader.biBitCount, fmtEncryptedPayload, encryptedPayloadLength);
-    } 
-    else {
+    if (strcmp(stego_method, "lsb1") == 0) {
+        lsb1(carrier_data, biWidth, biHeight, biBitCount, payload_encrypted_data, payload_encrypted_data_length);
+    } else if (strcmp(stego_method, "lsb4") == 0) {
+        lsb4(carrier_data, biWidth, biHeight, biBitCount, payload_encrypted_data, payload_encrypted_data_length);
+    } else if (strcmp(stego_method, "lsbi") == 0) {
+        lsbi(carrier_data,  biWidth, biHeight, biBitCount, payload_encrypted_data, payload_encrypted_data_length);
+    } else {
         fprintf(stderr, "Error: El método de esteganografía debe ser 'lsb1' o 'lsb4'.\n");
         exit(1);
     }
 
-    write_bmp(bmpFilePathOutput, &fileHeader, &infoHeader, bmpData);
+    write_bmp(output_filepath, &carrier_file_header, &carrier_info_header, carrier_data);
 
-    free_cipher_params(cipherParams);
+    free(payload_encrypted_data);
+    free(encrypted_data);
+    free(payload_data);
+    free(carrier_data);
 
-    free(encryptedPayload);
-    free(fmtEncryptedPayload);
-
-    free(bmpData);
-    free(payload);
+    free_cipher_params(cipher_params);
 }
 
 void extract_subcommand(ArgParser *parser) {
-
+    
 }

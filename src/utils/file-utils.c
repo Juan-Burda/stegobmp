@@ -20,26 +20,35 @@ size_t get_file_size(FILE *file) {
     return size;
 }
 
-unsigned char* fmt_encrypted_payload(const char* encryptedPayload, size_t *encryptedPayloadLength) {
-    size_t totalSize = sizeof(size_t) + *encryptedPayloadLength;
-    unsigned char* payload = (unsigned char*)malloc(totalSize);
-    if (payload == NULL) {
+size_t fmt_encrypted_data(const uint8_t* encrypted_data, size_t encrypted_data_length, uint8_t **payload_encrypted_data) {
+    size_t totalSize = sizeof(size_t) + encrypted_data_length;
+    *payload_encrypted_data = (uint8_t*) malloc(totalSize);
+    if (payload_encrypted_data == NULL) {
         perror("Memory allocation failed");
-        return NULL;
+        return -1;
     }
-    memcpy(payload, encryptedPayloadLength, sizeof(size_t));
-    memcpy(payload + sizeof(size_t), encryptedPayload, *encryptedPayloadLength);
+    memcpy(*payload_encrypted_data, &encrypted_data_length, sizeof(size_t));
+    memcpy(*payload_encrypted_data + sizeof(size_t), encrypted_data, encrypted_data_length);
 
-    *encryptedPayloadLength = totalSize;
-
-    return payload; 
+    return totalSize;
 }
 
-unsigned char *fmt_payload(const char *filename, size_t *payload_length) {
+unsigned char* dfmt_encrypted_payload(const char* encryptedPayload, size_t *encryptedPayloadLength) {
+    unsigned char* payload = (unsigned char*)malloc(*encryptedPayloadLength);
+    if (payload == NULL) {
+        perror("Memory allocation failed"); 
+        return NULL;
+    }
+
+    memcpy(payload, encryptedPayload + sizeof(size_t), *encryptedPayloadLength);    
+    return payload;
+}
+
+size_t fmt_data(const char *filename, uint8_t** payload_data) {
     FILE *file = fopen(filename, "rb");
     if (file == NULL) {
         perror("Error opening file");
-        return NULL;
+        return -1;
     }
 
     size_t file_size = get_file_size(file);
@@ -47,24 +56,22 @@ unsigned char *fmt_payload(const char *filename, size_t *payload_length) {
     size_t ext_size = strlen(extension);
 
     size_t total_size = sizeof(size_t) + file_size + ext_size + 1;
-    unsigned char *payload = (unsigned char *)malloc(total_size);
-    if (payload == NULL) {
-        perror("Memory allocation failed");
-        fclose(file);
-        return NULL;
+    
+    *payload_data = (uint8_t *)malloc(total_size);
+    if (*payload_data == NULL) {
+        perror("Memory allocation failed"); 
+        return -1;
     }
 
-    memcpy(payload, &file_size, sizeof(size_t));
-    fread(payload + sizeof(size_t), 1, file_size, file);
-    memcpy(payload + sizeof(size_t) + file_size, extension, ext_size);
+    memcpy(*payload_data, &file_size, sizeof(size_t));
+    fread(*payload_data + sizeof(size_t), 1, file_size, file);
+    memcpy(*payload_data + sizeof(size_t) + file_size, extension, ext_size);
 
-    payload[sizeof(size_t) + file_size + ext_size] = '\0';
+    (*payload_data)[sizeof(size_t) + file_size + ext_size] = '\0';
 
     fclose(file);
 
-    *payload_length = total_size;
-
-    return payload;
+    return total_size;
 }
 
 size_t dfmt_payload(unsigned char *payload, unsigned char *content, unsigned char *extension) {
