@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <subcommands.h>
+#include "../../include/constants/error-codes.h"
 
 // TODO: delete
 void example_encrypt_decrypt();
@@ -15,9 +16,9 @@ int main(int argc, char *argv[]) {
     ArgParser *parser = init_steganography_parser();
 
     int parse_value = parse_arguments(parser, argc, argv);
-    if (parse_value == -1){
+    if (parse_value != SUCCESS){
         free_parser(parser);
-        return -1;
+        return parse_value;
     }
 
     run_subcommand(parser);
@@ -44,7 +45,7 @@ int main(int argc, char *argv[]) {
     */
     free_parser(parser);
 
-    return 0;
+    return SUCCESS;
 }
 
 void example_encrypt_decrypt() {

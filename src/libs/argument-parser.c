@@ -3,6 +3,7 @@
 #include "../../include/string-utils.h"
 #include "../../include/argument-parser.h"
 #include "../../include/constants/error-messages.h"
+#include "../../include/constants/error-codes.h"
 #include <cli-arguments.h>
 
 ArgParser* create_parser() {
@@ -66,7 +67,7 @@ Argument* find_argument(Subcommand *subcommand, const char *name) {
 int parse_arguments(ArgParser *parser, int argc, char *argv[]) {
     if (argc < 2) {
         LOG_ERROR_MSG(NO_SUBCOMMAND);
-        return -1;
+        return ERROR;
     }
 
     for (int i = 0; i < parser->subcommand_count; i++) {
@@ -78,7 +79,7 @@ int parse_arguments(ArgParser *parser, int argc, char *argv[]) {
 
     if (!parser->current_subcommand) {
         LOG_ERROR_MSG(UNKNOWN_SUBCOMMAND, argv[1]);
-        return -1;
+        return ERROR;
     }
 
     for (int i = 2; i < argc; i++) {
@@ -100,6 +101,7 @@ int parse_arguments(ArgParser *parser, int argc, char *argv[]) {
                 }
             } else {
                 LOG_ERROR_MSG(UNKNOWN_ARGUMENT, argv[i]);
+                return ERROR;
             }
         }
     }
@@ -108,9 +110,10 @@ int parse_arguments(ArgParser *parser, int argc, char *argv[]) {
         Argument *arg = &parser->current_subcommand->args[i];
         if (arg->is_required && !arg->is_set) {
             LOG_ERROR_MSG(MISSING_REQUIRED_ARGUMENT, arg->name);
-            return -1;
+            return ERROR;
         }
     }
+    return SUCCESS;
 }
 
 void free_parser(ArgParser *parser) {

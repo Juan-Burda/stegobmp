@@ -31,11 +31,6 @@ SubcommandMapping subcommand_map[] = {
 };
 
 void run_subcommand(ArgParser *parser) {
-    if (!parser->current_subcommand) {
-        fprintf(stderr, "Error: No se especificó un subcomando válido.\n");
-        return;
-    }
-
     const char *subcommand_name = parser->current_subcommand->name;
 
     for (size_t i = 0; i < sizeof(subcommand_map) / sizeof(SubcommandMapping); i++) {
