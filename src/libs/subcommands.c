@@ -53,10 +53,18 @@ void embed_subcommand(ArgParser *parser) {
 
     // Get encryption arguments
     Argument *encryption_method_arg = find_argument(parser->current_subcommand, ARG_ENCRYPTION);
+    void * encryption_method_arg_value = encryption_method_arg->default_value;
+    if (encryption_method_arg->is_set){
+        encryption_method_arg_value = encryption_method_arg->value;
+    }
     Argument *chaining_mode_arg = find_argument(parser->current_subcommand, ARG_MODE);
+    void * chaining_mode_arg_value = chaining_mode_arg->default_value;
+    if (chaining_mode_arg->is_set){
+        chaining_mode_arg_value = chaining_mode_arg->value;
+    }
     Argument *encryption_password_arg = find_argument(parser->current_subcommand, ARG_PASSWORD);
 
-    CipherParams *cipher_params = init_cipher_params(encryption_password_arg->value, encryption_method_arg->value, chaining_mode_arg->value);
+    CipherParams *cipher_params = init_cipher_params(encryption_password_arg->value, encryption_method_arg_value, chaining_mode_arg_value);
 
     // Get steganography method argument
     Argument *stego_method_arg = find_argument(parser->current_subcommand, ARG_STEGANOGRAPHY);
@@ -117,10 +125,18 @@ void extract_subcommand(ArgParser *parser) {
 
     // Get encryption arguments
     Argument *encryption_method_arg = find_argument(parser->current_subcommand, ARG_ENCRYPTION);
+    void * encryption_method_arg_value = encryption_method_arg->default_value;
+    if (encryption_method_arg->is_set){
+        encryption_method_arg_value = encryption_method_arg->value;
+    }
     Argument *chaining_mode_arg = find_argument(parser->current_subcommand, ARG_MODE);
+    void * chaining_mode_arg_value = chaining_mode_arg->default_value;
+    if (chaining_mode_arg->is_set){
+        chaining_mode_arg_value = chaining_mode_arg->value;
+    }
     Argument *encryption_password_arg = find_argument(parser->current_subcommand, ARG_PASSWORD);
 
-    CipherParams *cipher_params = init_cipher_params(encryption_password_arg->value, encryption_method_arg->value, chaining_mode_arg->value);
+    CipherParams *cipher_params = init_cipher_params(encryption_password_arg->value, encryption_method_arg_value, chaining_mode_arg_value);
 
     // Get steganography method argument
     Argument *stego_method_arg = find_argument(parser->current_subcommand, ARG_STEGANOGRAPHY);

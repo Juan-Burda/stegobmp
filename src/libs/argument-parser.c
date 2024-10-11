@@ -31,7 +31,8 @@ Subcommand* add_subcommand(ArgParser *parser, const char *name) {
 }
 
 
-void add_argument(Subcommand *subcommand, const char *name, ArgType type, const char **choices, int choice_count, bool is_required) {
+void add_argument(Subcommand *subcommand, const char *name, ArgType type, const char **choices, int choice_count, bool is_required
+    , const char * default_value) {
     if (subcommand->arg_count == subcommand->arg_capacity) {
         int new_capacity = subcommand->arg_capacity == 0 ? 1 : subcommand->arg_capacity * 2;
         subcommand->args = realloc(subcommand->args, new_capacity * sizeof(Argument));
@@ -52,6 +53,12 @@ void add_argument(Subcommand *subcommand, const char *name, ArgType type, const 
     } else {
         arg->choices = NULL;
         arg->choice_count = 0;
+    }
+    if (default_value){
+         arg->default_value=strndup(default_value, MAX_ARG_LEN);
+    }
+    else {
+        arg->default_value = NULL;
     }
 }
 
@@ -113,6 +120,7 @@ int parse_arguments(ArgParser *parser, int argc, char *argv[]) {
             return ERROR;
         }
     }
+
     return SUCCESS;
 }
 
@@ -128,6 +136,9 @@ void free_parser(ArgParser *parser) {
                 free(arg->choices[k]);
             }
             free(arg->choices);
+            if (arg->default_value){
+                free(arg->default_value);
+            }
         }
         free(subcommand->args);
     }

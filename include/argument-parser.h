@@ -18,6 +18,7 @@ typedef struct {
     char **choices;
     int choice_count;
     bool is_required;
+    void * default_value;
 } Argument;
 
 typedef struct {
@@ -38,7 +39,8 @@ typedef struct {
 ArgParser* create_parser();
 void free_parser(ArgParser *parser);
 Subcommand* add_subcommand(ArgParser *parser, const char *name);
-void add_argument(Subcommand *subcommand, const char *name, ArgType type, const char **choices, int choice_count, bool is_required);
+void add_argument(Subcommand *subcommand, const char *name, ArgType type, const char **choices, int choice_count, bool is_required,
+    const char * default_value);
 int parse_arguments(ArgParser *parser, int argc, char *argv[]);
 Argument* find_argument(Subcommand *subcommand, const char *name);
 
