@@ -113,5 +113,83 @@ void embed_subcommand(ArgParser *parser) {
 }
 
 void extract_subcommand(ArgParser *parser) {
+    // Get file arguments
+    Argument* carrier_filepath_arg = find_argument(parser->current_subcommand, ARG_CARRIER);
+    Argument* output_filename_arg = find_argument(parser->current_subcommand, ARG_OUTPUT);
+
+    const unsigned char *carrier_filepath =  (unsigned char*)carrier_filepath_arg->value;
+    const unsigned char *output_filename = (unsigned char*)output_filename_arg->value;
+
+    // Get encryption arguments
+    Argument* encryption_method_arg = find_argument(parser->current_subcommand, ARG_ENCRYPTION);
+    Argument* chaining_mode_arg = find_argument(parser->current_subcommand, ARG_MODE);
+    Argument* encryption_password_arg = find_argument(parser->current_subcommand, ARG_PASSWORD);
+
+    CipherParams *cipher_params = init_cipher_params(encryption_password_arg->value, encryption_method_arg->value, chaining_mode_arg->value);
+
+    // Get steganography method argument
+    Argument* stego_method_arg = find_argument(parser->current_subcommand, ARG_STEGANOGRAPHY);
+    const unsigned char* stego_method = (unsigned char*) stego_method_arg->value;
+
+    // Get carrier data (carrier must be a BMP file)
+    BMPFileHeader carrier_file_header;
+    BMPInfoHeader carrier_info_header;
+
+    uint8_t* carrier_data = read_bmp_data(carrier_filepath, &carrier_file_header, &carrier_info_header);
+    if (!carrier_data)
+        exit(1);
+
+    int biWidth = carrier_info_header.biWidth;
+    int biHeight = carrier_info_header.biHeight;
+    int biBitCount = carrier_info_header.biBitCount;
+
+    // Extract the payload encrypted data length
+    uint8_t payload_encrypted_data_length_buffer[sizeof(size_t)];    
+
+    if (strcmp(stego_method, "lsb1") == 0) {
+        lsb1_extract(carrier_data, biWidth, biHeight, biBitCount, payload_encrypted_data_length_buffer, sizeof(size_t));
+    } else if (strcmp(stego_method, "lsb4") == 0) {
+        lsb4_extract(carrier_data, biWidth, biHeight, biBitCount, payload_encrypted_data_length_buffer, sizeof(size_t));
+    } else if (strcmp(stego_method, "lsbi") == 0) {
+        lsbi_extract(carrier_data, biWidth, biHeight, biBitCount, payload_encrypted_data_length_buffer, sizeof(size_t));
+    } else {
+        fprintf(stderr, "Error: El método de esteganografía debe ser 'lsb1', 'lsb4' o 'lsbi'.\n");
+        free(carrier_data);
+        exit(1);
+    }
+
+    // Convert the extracted bytes to size_t
+    size_t encrypted_data_length;
+    memcpy(&encrypted_data_length, payload_encrypted_data_length_buffer, sizeof(size_t));
+    printf("Extracted payload size: %zu bytes\n", encrypted_data_length);
+
+    // Allocate memory for the full payload
+    uint8_t* encrypted_data = (uint8_t*) malloc(encrypted_data_length);
+    if (!encrypted_data) {
+        fprintf(stderr, "Failed to allocate memory for payload\n");
+        free(carrier_data);
+        free_cipher_params(cipher_params);
+        exit(1);
+    }
+
+    // Extract the full payload
+    if (strcmp(stego_method, "lsb1") == 0) {
+        lsb1_extract(carrier_data, biWidth, biHeight, biBitCount, encrypted_data, encrypted_data_length);
+    } else if (strcmp(stego_method, "lsb4") == 0) {
+        lsb4_extract(carrier_data, biWidth, biHeight, biBitCount, encrypted_data, encrypted_data_length);
+    } else if (strcmp(stego_method, "lsbi") == 0) {
+        lsbi_extract(carrier_data, biWidth, biHeight, biBitCount, encrypted_data, encrypted_data_length);
+    }
+
+    // FIXME: Decrypt the payload throwing "Error finalizing decryption"
+
+    // Decrypt the payload
+    // uint8_t *payload_data = NULL;
+    // const size_t payload_data_length = decrypt(cipher_params, encrypted_data, encrypted_data_length, &payload_data);
+
+    // Free memory
+    free(encrypted_data);
+    free(carrier_data);
     
+    free_cipher_params(cipher_params);
 }
