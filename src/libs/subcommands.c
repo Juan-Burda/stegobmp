@@ -162,7 +162,8 @@ void extract_subcommand(ArgParser *parser) {
     } else if (strcmp(stego_method, "lsb4") == 0) {
         lsb4_extract(carrier_data, biWidth, biHeight, biBitCount, payload_encrypted_data_length_buffer, sizeof(size_t));
     } else if (strcmp(stego_method, "lsbi") == 0) {
-        lsbi_extract(carrier_data, biWidth, biHeight, biBitCount, payload_encrypted_data_length_buffer, sizeof(size_t));
+        lsbi_invert(carrier_data, biWidth, biHeight, biBitCount, sizeof(size_t), 0);
+        _lsb1_extract(carrier_data + sizeof(uint32_t), biWidth, biHeight, biBitCount, payload_encrypted_data_length_buffer, sizeof(size_t), BYTES_PER_PIXEL - 1);
     } else {
         LOG_ERROR_MSG(INVALID_STEG_METHOD);
         free(carrier_data);
@@ -172,7 +173,6 @@ void extract_subcommand(ArgParser *parser) {
     // Convert the extracted bytes to size_t
     size_t encrypted_data_length;
     memcpy(&encrypted_data_length, payload_encrypted_data_length_buffer, sizeof(size_t));
-    printf("Extracted payload size: %zu bytes\n", encrypted_data_length);
 
     // Allocate memory for the full payload
     uint8_t *encrypted_data = (uint8_t *)malloc(encrypted_data_length);
@@ -189,12 +189,13 @@ void extract_subcommand(ArgParser *parser) {
     } else if (strcmp(stego_method, "lsb4") == 0) {
         lsb4_extract(carrier_data + sizeof(size_t) * (BITS_PER_BYTE / 4), biWidth, biHeight, biBitCount, encrypted_data, encrypted_data_length);
     } else if (strcmp(stego_method, "lsbi") == 0) {
-        lsbi_extract(carrier_data + sizeof(size_t) * BITS_PER_BYTE, biWidth, biHeight, biBitCount, encrypted_data, encrypted_data_length);
+        lsbi_invert(carrier_data, biWidth, biHeight, biBitCount, encrypted_data_length, sizeof(size_t));
+        _lsb1_extract(carrier_data + sizeof(uint32_t) + sizeof(size_t) * (BITS_PER_BYTE + 4), biWidth, biHeight, biBitCount, encrypted_data, encrypted_data_length, BYTES_PER_PIXEL - 1);
     }
 
     // Decrypt the payload
     uint8_t *payload_data = NULL;
-    const size_t payload_data_length = decrypt(cipher_params, encrypted_data, encrypted_data_length, &payload_data);
+    const long payload_data_length = decrypt(cipher_params, encrypted_data, encrypted_data_length, &payload_data);
     if (payload_data_length < 0) {
         fprintf(stderr, "Error: No se pudo descifrar el payload.\n");
         free(encrypted_data);
