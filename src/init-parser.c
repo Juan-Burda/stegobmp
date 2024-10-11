@@ -14,6 +14,7 @@ ArgParser* init_steganography_parser() {
     const char *mode_choices[] = {MODE_ECB, MODE_CFB, MODE_OFB, MODE_CBC};
     const char mode_count = sizeof(mode_choices) / sizeof(mode_choices[0]);
 
+    add_argument(extract, ARG_CARRIER, ARG_STRING, NULL, 0);
     add_argument(extract, ARG_OUTPUT, ARG_STRING, NULL, 0);
     add_argument(extract, ARG_PAYLOAD, ARG_STRING, NULL, 0);
     add_argument(extract, ARG_STEGANOGRAPHY, ARG_CHOICE, steg_choices, 3);
@@ -22,7 +23,7 @@ ArgParser* init_steganography_parser() {
     add_argument(extract, ARG_PASSWORD, ARG_STRING, NULL, 0);
 
     // Embed subcommand
-    Subcommand *embed = add_subcommand(parser, "-embed");
+    Subcommand *embed = add_subcommand(parser, CMD_EMBED);
 
     add_argument(embed, ARG_CARRIER, ARG_STRING, NULL, 0);
     add_argument(embed, ARG_PAYLOAD, ARG_STRING, NULL, 0);
