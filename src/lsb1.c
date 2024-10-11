@@ -31,16 +31,22 @@ void _lsb1(uint8_t* data, int width, int height, int bitCount, const char* paylo
             int pixelIndex = (y * rowSize) + (x * BYTES_PER_PIXEL);
 
             for (int color = 0; color < numChannels; color++) {
+                if (payloadBitIndex == BITS_PER_BYTE) {
+                    payloadBitIndex = 0;
+                    payloadIndex++;
+
+                    if (payloadIndex < payloadLength) {
+                        currentChar = payload[payloadIndex];
+                    } else {
+                        return;
+                    }
+                }
+
                 int bitToEmbed = (currentChar >> payloadBitIndex) & 1;
 
                 data[pixelIndex + color] = (data[pixelIndex + color] & 0xFE) | bitToEmbed;
 
                 payloadBitIndex++;
-                if (payloadBitIndex == BITS_PER_BYTE) {
-                    payloadBitIndex = 0;
-                    currentChar = payload[payloadIndex];
-                    payloadIndex++;
-                }
             }
         }
     }
@@ -66,14 +72,14 @@ void _lsb1_extract(uint8_t* data, int width, int height, int bitCount, char* ext
             int pixelIndex = (y * rowSize) + (x * BYTES_PER_PIXEL);
 
             for (int color = 0; color < numChannels; color++) {
-                int bit = data[pixelIndex + color] & 1;
+                uint8_t pixelValue = data[pixelIndex + color];
+                int bit = pixelValue & 1;
 
                 currentChar |= (bit << payloadBitIndex);
                 payloadBitIndex++;
 
                 if (payloadBitIndex == BITS_PER_BYTE) {
                     extractedPayload[payloadIndex++] = currentChar;
-
                     payloadBitIndex = 0;
                     currentChar = 0;
 
