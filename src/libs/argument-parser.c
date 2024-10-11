@@ -29,7 +29,7 @@ Subcommand* add_subcommand(ArgParser *parser, const char *name) {
 }
 
 
-void add_argument(Subcommand *subcommand, const char *name, ArgType type, const char **choices, int choice_count) {
+void add_argument(Subcommand *subcommand, const char *name, ArgType type, const char **choices, int choice_count, bool is_required) {
     if (subcommand->arg_count == subcommand->arg_capacity) {
         int new_capacity = subcommand->arg_capacity == 0 ? 1 : subcommand->arg_capacity * 2;
         subcommand->args = realloc(subcommand->args, new_capacity * sizeof(Argument));
@@ -40,6 +40,7 @@ void add_argument(Subcommand *subcommand, const char *name, ArgType type, const 
     arg->type = type;
     arg->value = NULL;
     arg->is_set = false;
+    arg->is_required = is_required;
     if (choices && choice_count > 0) {
         arg->choices = malloc(choice_count * sizeof(char*));
         for (int i = 0; i < choice_count; i++) {
@@ -61,10 +62,10 @@ Argument* find_argument(Subcommand *subcommand, const char *name) {
     return NULL;
 }
 
-void parse_arguments(ArgParser *parser, int argc, char *argv[]) {
+int parse_arguments(ArgParser *parser, int argc, char *argv[]) {
     if (argc < 2) {
         fprintf(stderr, "Error: No subcommand provided\n");
-        return;
+        return -1;
     }
 
     for (int i = 0; i < parser->subcommand_count; i++) {
@@ -76,7 +77,7 @@ void parse_arguments(ArgParser *parser, int argc, char *argv[]) {
 
     if (!parser->current_subcommand) {
         fprintf(stderr, "Error: Unknown subcommand %s\n", argv[1]);
-        return;
+        return -1;
     }
 
     for (int i = 2; i < argc; i++) {
@@ -98,7 +99,16 @@ void parse_arguments(ArgParser *parser, int argc, char *argv[]) {
                 }
             } else {
                 fprintf(stderr, "Unknown argument: %s\n", argv[i]);
+                return -1;
             }
+        }
+    }
+
+    for (int i = 0; i < parser->current_subcommand->arg_count; i++) {
+        Argument *arg = &parser->current_subcommand->args[i];
+        if (arg->is_required && !arg->is_set) {
+            printf("Missing required argument: %s \n", arg->name);
+            return -1;
         }
     }
 }

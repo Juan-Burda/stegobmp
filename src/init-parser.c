@@ -14,24 +14,27 @@ ArgParser* init_steganography_parser() {
     const char *mode_choices[] = {MODE_ECB, MODE_CFB, MODE_OFB, MODE_CBC};
     const char mode_count = sizeof(mode_choices) / sizeof(mode_choices[0]);
 
-    add_argument(extract, ARG_CARRIER, ARG_STRING, NULL, 0);
-    add_argument(extract, ARG_OUTPUT, ARG_STRING, NULL, 0);
-    add_argument(extract, ARG_PAYLOAD, ARG_STRING, NULL, 0);
-    add_argument(extract, ARG_STEGANOGRAPHY, ARG_CHOICE, steg_choices, 3);
-    add_argument(extract, ARG_ENCRYPTION, ARG_CHOICE, encryption_choices, 4);
-    add_argument(extract, ARG_MODE, ARG_CHOICE, mode_choices, 4);
-    add_argument(extract, ARG_PASSWORD, ARG_STRING, NULL, 0);
+    // Mandatory
+    add_argument(extract, ARG_CARRIER, ARG_STRING, NULL, 0, true);
+    add_argument(extract, ARG_OUTPUT, ARG_STRING, NULL, 0, true);
+    add_argument(extract, ARG_STEGANOGRAPHY, ARG_CHOICE, steg_choices, 3, true);
+    // Optional
+    add_argument(extract, ARG_ENCRYPTION, ARG_CHOICE, encryption_choices, 4, false);
+    add_argument(extract, ARG_MODE, ARG_CHOICE, mode_choices, 4,false);
+    add_argument(extract, ARG_PASSWORD, ARG_STRING, NULL, 0, false);
 
     // Embed subcommand
     Subcommand *embed = add_subcommand(parser, CMD_EMBED);
 
-    add_argument(embed, ARG_CARRIER, ARG_STRING, NULL, 0);
-    add_argument(embed, ARG_PAYLOAD, ARG_STRING, NULL, 0);
-    add_argument(embed, ARG_OUTPUT, ARG_STRING, NULL, 0);
-    add_argument(embed, ARG_STEGANOGRAPHY, ARG_CHOICE, steg_choices, steg_count);
-    add_argument(embed, ARG_ENCRYPTION, ARG_CHOICE, encryption_choices, enc_count);
-    add_argument(embed, ARG_MODE, ARG_CHOICE, mode_choices, mode_count);
-    add_argument(embed, ARG_PASSWORD, ARG_STRING, NULL, 0);
+    // Mandatory
+    add_argument(embed, ARG_CARRIER, ARG_STRING, NULL, 0, true);
+    add_argument(embed, ARG_PAYLOAD, ARG_STRING, NULL, 0, true);
+    add_argument(embed, ARG_OUTPUT, ARG_STRING, NULL, 0, true);
+    add_argument(embed, ARG_STEGANOGRAPHY, ARG_CHOICE, steg_choices, steg_count, true);
+    // Optional
+    add_argument(embed, ARG_ENCRYPTION, ARG_CHOICE, encryption_choices, enc_count, false);
+    add_argument(embed, ARG_MODE, ARG_CHOICE, mode_choices, mode_count, false);
+    add_argument(embed, ARG_PASSWORD, ARG_STRING, NULL, 0, false);
 
     return parser;
 }

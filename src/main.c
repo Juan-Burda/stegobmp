@@ -14,7 +14,11 @@ void example_encrypt_decrypt();
 int main(int argc, char *argv[]) {
     ArgParser *parser = init_steganography_parser();
 
-    parse_arguments(parser, argc, argv);
+    int parse_value = parse_arguments(parser, argc, argv);
+    if (parse_value == -1){
+        free_parser(parser);
+        return -1;
+    }
 
     run_subcommand(parser);
 
