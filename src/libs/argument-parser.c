@@ -100,9 +100,33 @@ int parse_arguments(ArgParser *parser, int argc, char *argv[]) {
                         *(bool*)arg->value = true;
                         break;
                     case ARG_STRING:
-                    case ARG_CHOICE:
                         if (i + 1 < argc) {
                             arg->value = strndup(argv[++i], MAX_ARG_LEN);
+                        }
+                        break;
+                    case ARG_CHOICE:
+                        if (i + 1 < argc) {
+                            arg->value = strndup(argv[++i], MAX_ARG_LEN);   
+                        }
+                        bool found_choice=false;
+                        for (int i=0; i < arg->choice_count; i++){
+                            if (strcmp(arg->choices[i], arg->value) == 0){
+                                found_choice = true;
+                            }
+                        }
+                        if (!found_choice){
+                            if (strcmp(arg->name, ARG_STEGANOGRAPHY) == 0){
+                                LOG_ERROR_MSG(INVALID_STEG_METHOD, arg->value);
+                                return ERROR;
+                            }
+                            if (strcmp(arg->name, ARG_ENCRYPTION) == 0){
+                                LOG_ERROR_MSG(INVALID_ENC_METHOD, arg->value);
+                                return ERROR;
+                            }
+                            if (strcmp(arg->name, ARG_MODE) == 0){
+                                LOG_ERROR_MSG(INVALID_MODE_METHOD, arg->value);
+                                return ERROR;
+                            }
                         }
                         break;
                 }

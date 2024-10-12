@@ -20,9 +20,9 @@
 #define ARG_STRING 1
 #define ARG_CHOICE 2
 
-#define STEG_LSB1 "LSB1"
-#define STEG_LSB4 "LSB4"
-#define STEG_LSBI "LSBI"
+#define STEG_LSB1 "lsb1"
+#define STEG_LSB4 "lsb4"
+#define STEG_LSBI "lsbi"
 
 #define ENC_AES128 "aes128"
 #define ENC_AES192 "aes192"
