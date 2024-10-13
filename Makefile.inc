@@ -4,7 +4,7 @@ GCCFLAGS=-Wall -std=c99 -pedantic -g $(INCLUDE) -fsanitize=address
 LDFLAGS=-lm -lcrypto -lssl -fsanitize=address
 
 INCLUDE=-Iinclude/ -Iinclude/constants/
-DIRS := src src/utils src/libs
+DIRS := src src/utils src/libs src/algorithms
 SOURCES := $(foreach dir, $(DIRS), $(wildcard $(dir)/*.c))
 OBJS := $(SOURCES:.c=.o)
 

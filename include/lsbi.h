@@ -5,10 +5,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void lsbi(uint8_t* data, int width, int height, int bitCount, const char* payload, size_t payloadLength);
+void lsbi(uint8_t* data, int width, int height, int bit_count, const char* payload, size_t payload_length);
 
-void lsbi_extract(uint8_t* data, int width, int height, int bitCount, char* extractedPayload, size_t payloadLength);
+void lsbi_extract(uint8_t* data, int width, int height, int bit_count, char* extracted_payload, size_t payload_length);
 
-void lsbi_invert(uint8_t* data, int width, int height, int bitCount, size_t payloadLength, int offset);
+void lsbi_invert(uint8_t* data, int width, int height, int bit_count, size_t payload_length, int offset);
 
 #endif  // LSBI_H

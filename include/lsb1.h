@@ -5,12 +5,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void lsb1(uint8_t* data, int width, int height, int bitCount, const char* payload, size_t payloadLength);
+void lsb1(uint8_t* data, int width, int height, int bit_count, const char* payload, size_t payload_length);
 
-void _lsb1(uint8_t* data, int width, int height, int bitCount, const char* payload, size_t payloadLength, const char numChannels);
+void _lsb1(uint8_t* data, int width, int height, int bit_count, const char* payload, size_t payload_length, const char num_channels);
 
-void lsb1_extract(uint8_t* data, int width, int height, int bitCount, char* extractedPayload, size_t payloadLength);
+void lsb1_extract(uint8_t* data, int width, int height, int bit_count, char* extractedPayload, size_t payload_length);
 
-void _lsb1_extract(uint8_t* data, int width, int height, int bitCount, char* extractedPayload, size_t payloadLength, const char numChannels);
+void _lsb1_extract(uint8_t* data, int width, int height, int bit_count, char* extractedPayload, size_t payload_length, const char num_channels);
 
 #endif  // LSB1_H

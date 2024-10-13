@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../../include/string-utils.h"
-#include "../../include/argument-parser.h"
-#include "../../include/constants/error-messages.h"
-#include "../../include/constants/error-codes.h"
+#include <string-utils.h>
+#include <argument-parser.h>
+#include <constants/error-messages.h>
+#include <constants/error-codes.h>
 #include <cli-arguments.h>
 
 ArgParser* create_parser() {

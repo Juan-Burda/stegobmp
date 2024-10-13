@@ -1,7 +1,7 @@
-#include "../include/init-parser.h"
+#include <init-parser.h>
 #include "../include/constants/cli-arguments.h"
 
-ArgParser* init_steganography_parser() {
+ArgParser *init_steganography_parser() {
     ArgParser *parser = create_parser();
 
     // Extract subcommand
@@ -20,7 +20,7 @@ ArgParser* init_steganography_parser() {
     add_argument(extract, ARG_STEGANOGRAPHY, ARG_CHOICE, steg_choices, 3, true, NULL);
     // Optional
     add_argument(extract, ARG_ENCRYPTION, ARG_CHOICE, encryption_choices, 4, false, ENC_AES128);
-    add_argument(extract, ARG_MODE, ARG_CHOICE, mode_choices, 4,false, MODE_CBC);
+    add_argument(extract, ARG_MODE, ARG_CHOICE, mode_choices, 4, false, MODE_CBC);
     add_argument(extract, ARG_PASSWORD, ARG_STRING, NULL, 0, false, NULL);
 
     // Embed subcommand

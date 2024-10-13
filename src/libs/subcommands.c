@@ -1,19 +1,18 @@
-#include "../../include/subcommands.h"
+#include <bmp-utils.h>
 #include <bmp.h>
+#include <constants/error-messages.h>
+#include <file-utils.h>
+#include <fmt-utils.h>
+#include <lsb1.h>
+#include <lsb4.h>
+#include <lsbi.h>
 #include <ssl-utils.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <subcommands.h>
 #include "../../include/constants/cli-arguments.h"
-#include "../include/bmp-utils.h"
-#include "../include/file-utils.h"
-#include "../include/lsb1.h"
-#include "../include/lsb4.h"
-#include "../include/lsbi.h"
-#include "../include/bmp-utils.h"
-#include "../include/file-utils.h"
-#include "../include/constants/error-messages.h"
 
 typedef void (*SubcommandFunction)(ArgParser *parser);
 
@@ -53,13 +52,13 @@ void embed_subcommand(ArgParser *parser) {
 
     // Get encryption arguments
     Argument *encryption_method_arg = find_argument(parser->current_subcommand, ARG_ENCRYPTION);
-    void * encryption_method_arg_value = encryption_method_arg->default_value;
-    if (encryption_method_arg->is_set){
+    void *encryption_method_arg_value = encryption_method_arg->default_value;
+    if (encryption_method_arg->is_set) {
         encryption_method_arg_value = encryption_method_arg->value;
     }
     Argument *chaining_mode_arg = find_argument(parser->current_subcommand, ARG_MODE);
-    void * chaining_mode_arg_value = chaining_mode_arg->default_value;
-    if (chaining_mode_arg->is_set){
+    void *chaining_mode_arg_value = chaining_mode_arg->default_value;
+    if (chaining_mode_arg->is_set) {
         chaining_mode_arg_value = chaining_mode_arg->value;
     }
     Argument *encryption_password_arg = find_argument(parser->current_subcommand, ARG_PASSWORD);
@@ -90,16 +89,16 @@ void embed_subcommand(ArgParser *parser) {
     uint8_t *payload_encrypted_data = NULL;
     const size_t payload_encrypted_data_length = fmt_encrypted_data(encrypted_data, encrypted_data_length, &payload_encrypted_data);
 
-    int biWidth = carrier_info_header.biWidth;
-    int biHeight = carrier_info_header.biHeight;
-    int biBitCount = carrier_info_header.biBitCount;
+    int bi_width = carrier_info_header.bi_width;
+    int bi_height = carrier_info_header.bi_height;
+    int bi_bit_count = carrier_info_header.bi_bit_count;
 
     if (strcmp(stego_method, "lsb1") == 0) {
-        lsb1(carrier_data, biWidth, biHeight, biBitCount, payload_encrypted_data, payload_encrypted_data_length);
+        lsb1(carrier_data, bi_width, bi_height, bi_bit_count, payload_encrypted_data, payload_encrypted_data_length);
     } else if (strcmp(stego_method, "lsb4") == 0) {
-        lsb4(carrier_data, biWidth, biHeight, biBitCount, payload_encrypted_data, payload_encrypted_data_length);
+        lsb4(carrier_data, bi_width, bi_height, bi_bit_count, payload_encrypted_data, payload_encrypted_data_length);
     } else if (strcmp(stego_method, "lsbi") == 0) {
-        lsbi(carrier_data, biWidth, biHeight, biBitCount, payload_encrypted_data, payload_encrypted_data_length);
+        lsbi(carrier_data, bi_width, bi_height, bi_bit_count, payload_encrypted_data, payload_encrypted_data_length);
     } else {
         LOG_ERROR_MSG(INVALID_STEG_METHOD);
         exit(1);
@@ -125,13 +124,13 @@ void extract_subcommand(ArgParser *parser) {
 
     // Get encryption arguments
     Argument *encryption_method_arg = find_argument(parser->current_subcommand, ARG_ENCRYPTION);
-    void * encryption_method_arg_value = encryption_method_arg->default_value;
-    if (encryption_method_arg->is_set){
+    void *encryption_method_arg_value = encryption_method_arg->default_value;
+    if (encryption_method_arg->is_set) {
         encryption_method_arg_value = encryption_method_arg->value;
     }
     Argument *chaining_mode_arg = find_argument(parser->current_subcommand, ARG_MODE);
-    void * chaining_mode_arg_value = chaining_mode_arg->default_value;
-    if (chaining_mode_arg->is_set){
+    void *chaining_mode_arg_value = chaining_mode_arg->default_value;
+    if (chaining_mode_arg->is_set) {
         chaining_mode_arg_value = chaining_mode_arg->value;
     }
     Argument *encryption_password_arg = find_argument(parser->current_subcommand, ARG_PASSWORD);
@@ -150,20 +149,20 @@ void extract_subcommand(ArgParser *parser) {
     if (!carrier_data)
         exit(1);
 
-    int biWidth = carrier_info_header.biWidth;
-    int biHeight = carrier_info_header.biHeight;
-    int biBitCount = carrier_info_header.biBitCount;
+    int bi_width = carrier_info_header.bi_width;
+    int bi_height = carrier_info_header.bi_height;
+    int bi_bit_count = carrier_info_header.bi_bit_count;
 
     // Extract the payload encrypted data length
     uint8_t payload_encrypted_data_length_buffer[sizeof(size_t)];
 
     if (strcmp(stego_method, "lsb1") == 0) {
-        lsb1_extract(carrier_data, biWidth, biHeight, biBitCount, payload_encrypted_data_length_buffer, sizeof(size_t));
+        lsb1_extract(carrier_data, bi_width, bi_height, bi_bit_count, payload_encrypted_data_length_buffer, sizeof(size_t));
     } else if (strcmp(stego_method, "lsb4") == 0) {
-        lsb4_extract(carrier_data, biWidth, biHeight, biBitCount, payload_encrypted_data_length_buffer, sizeof(size_t));
+        lsb4_extract(carrier_data, bi_width, bi_height, bi_bit_count, payload_encrypted_data_length_buffer, sizeof(size_t));
     } else if (strcmp(stego_method, "lsbi") == 0) {
-        lsbi_invert(carrier_data, biWidth, biHeight, biBitCount, sizeof(size_t), 0);
-        _lsb1_extract(carrier_data + sizeof(uint32_t), biWidth, biHeight, biBitCount, payload_encrypted_data_length_buffer, sizeof(size_t), BYTES_PER_PIXEL - 1);
+        lsbi_invert(carrier_data, bi_width, bi_height, bi_bit_count, sizeof(size_t), 0);
+        _lsb1_extract(carrier_data + sizeof(uint32_t), bi_width, bi_height, bi_bit_count, payload_encrypted_data_length_buffer, sizeof(size_t), BYTES_PER_PIXEL - 1);
     } else {
         LOG_ERROR_MSG(INVALID_STEG_METHOD);
         free(carrier_data);
@@ -185,12 +184,12 @@ void extract_subcommand(ArgParser *parser) {
 
     // Extract the full payload
     if (strcmp(stego_method, "lsb1") == 0) {
-        lsb1_extract(carrier_data + sizeof(size_t) * BITS_PER_BYTE, biWidth, biHeight, biBitCount, encrypted_data, encrypted_data_length);
+        lsb1_extract(carrier_data + sizeof(size_t) * BITS_PER_BYTE, bi_width, bi_height, bi_bit_count, encrypted_data, encrypted_data_length);
     } else if (strcmp(stego_method, "lsb4") == 0) {
-        lsb4_extract(carrier_data + sizeof(size_t) * (BITS_PER_BYTE / 4), biWidth, biHeight, biBitCount, encrypted_data, encrypted_data_length);
+        lsb4_extract(carrier_data + sizeof(size_t) * (BITS_PER_BYTE / 4), bi_width, bi_height, bi_bit_count, encrypted_data, encrypted_data_length);
     } else if (strcmp(stego_method, "lsbi") == 0) {
-        lsbi_invert(carrier_data, biWidth, biHeight, biBitCount, encrypted_data_length, sizeof(size_t));
-        _lsb1_extract(carrier_data + sizeof(uint32_t) + sizeof(size_t) * (BITS_PER_BYTE + 4), biWidth, biHeight, biBitCount, encrypted_data, encrypted_data_length, BYTES_PER_PIXEL - 1);
+        lsbi_invert(carrier_data, bi_width, bi_height, bi_bit_count, encrypted_data_length, sizeof(size_t));
+        _lsb1_extract(carrier_data + sizeof(uint32_t) + sizeof(size_t) * (BITS_PER_BYTE + 4), bi_width, bi_height, bi_bit_count, encrypted_data, encrypted_data_length, BYTES_PER_PIXEL - 1);
     }
 
     // Decrypt the payload

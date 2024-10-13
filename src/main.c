@@ -1,5 +1,6 @@
 #include <argument-parser.h>
 #include <bmp-utils.h>
+#include <constants/error-codes.h>
 #include <init-parser.h>
 #include <lsb1.h>
 #include <lsbi.h>
@@ -7,7 +8,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <subcommands.h>
-#include "../../include/constants/error-codes.h"
 
 // TODO: delete
 void example_encrypt_decrypt();
@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
     ArgParser *parser = init_steganography_parser();
 
     int parse_value = parse_arguments(parser, argc, argv);
-    if (parse_value != SUCCESS){
+    if (parse_value != SUCCESS) {
         free_parser(parser);
         return parse_value;
     }
@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
     if (!bmpSecretData) {
         exit(1);
         char *extractedMessage = calloc(payloadLength, sizeof(char));
-    lsb1_extract(bmpSecretData, infoHeader.biWidth, infoHeader.biHeight, infoHeader.biBitCount, extractedMessage, payloadLength);
+    lsb1_extract(bmpSecretData, infoHeader.biWidth, infoHeader.biHeight, infoHeader.bi_bit_count, extractedMessage, payloadLength);
     char content[payloadLength];
     char extension[payloadLength];
     size_t extractedMessageLength = dfmt_payload(extractedMessage, content, extension);

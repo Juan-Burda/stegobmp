@@ -1,72 +1,72 @@
+#include <bmp-utils.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "../../include/bmp-utils.h"
 
-void read_bmp_headers(const char *fileName) {
-    FILE *file = fopen(fileName, "rb");
+void read_bmp_headers(const char *filename) {
+    FILE *file = fopen(filename, "rb");
     if (!file) {
         perror("Error opening file");
         return;
     }
 
-    BMPFileHeader fileHeader;
-    BMPInfoHeader infoHeader;
+    BMPFileHeader file_header;
+    BMPInfoHeader info_header;
 
-    fread(&fileHeader, sizeof(BMPFileHeader), 1, file);
+    fread(&file_header, sizeof(BMPFileHeader), 1, file);
 
-    if (fileHeader.bfType != 0x4D42) {
+    if (file_header.bf_type != 0x4D42) {
         printf("Not a valid BMP file.\n");
         fclose(file);
         return;
     }
 
-    fread(&infoHeader, sizeof(BMPInfoHeader), 1, file);
+    fread(&info_header, sizeof(BMPInfoHeader), 1, file);
 
-    printf("File Size: %u bytes\n", fileHeader.bfSize);
-    printf("Image Width: %d pixels\n", infoHeader.biWidth);
-    printf("Image Height: %d pixels\n", infoHeader.biHeight);
-    printf("Bit Depth: %u bits per pixel\n", infoHeader.biBitCount);
-    printf("Compression: %s\n", infoHeader.biCompression == 0? "No": "Yes");
-    printf("Image Size: %u bytes\n", infoHeader.biSizeImage);
+    printf("File Size: %u bytes\n", file_header.bf_size);
+    printf("Image Width: %d pixels\n", info_header.bi_width);
+    printf("Image Height: %d pixels\n", info_header.bi_height);
+    printf("Bit Depth: %u bits per pixel\n", info_header.bi_bit_count);
+    printf("Compression: %s\n", info_header.bi_compression == 0 ? "No" : "Yes");
+    printf("Image Size: %u bytes\n", info_header.bi_size_image);
 
     fclose(file);
 }
 
-uint8_t* read_bmp_data(const char* fileName, BMPFileHeader* fileHeader, BMPInfoHeader* infoHeader) {
-    FILE *file = fopen(fileName, "rb");
+uint8_t *read_bmp_data(const char *filename, BMPFileHeader *file_header, BMPInfoHeader *info_header) {
+    FILE *file = fopen(filename, "rb");
     if (!file) {
         perror("Error opening file");
         return NULL;
     }
 
-    fread(fileHeader, sizeof(BMPFileHeader), 1, file);
+    fread(file_header, sizeof(BMPFileHeader), 1, file);
 
-    if (fileHeader->bfType != 0x4D42) {
+    if (file_header->bf_type != 0x4D42) {
         printf("Not a valid BMP file.\n");
         fclose(file);
         return NULL;
     }
 
-    fread(infoHeader, sizeof(BMPInfoHeader), 1, file);
+    fread(info_header, sizeof(BMPInfoHeader), 1, file);
 
-    fseek(file, fileHeader->bfOffBits, SEEK_SET);
+    fseek(file, file_header->bf_off_bits, SEEK_SET);
 
-    uint8_t* pixelData = (uint8_t*)malloc(fileHeader->bfSize);
+    uint8_t *pixelData = (uint8_t *)malloc(file_header->bf_size);
     if (!pixelData) {
         printf("Error: Memory allocation failed!\n");
         fclose(file);
         return NULL;
     }
 
-    fread(pixelData, infoHeader->biSizeImage, 1, file);
+    fread(pixelData, info_header->bi_size_image, 1, file);
 
     fclose(file);
 
     return pixelData;
 }
 
-void print_bmp_data(uint8_t* data, int width, int height, int bitCount) {
-    if (bitCount != 24) {
+void print_bmp_data(uint8_t *data, int width, int height, int bit_count) {
+    if (bit_count != 24) {
         printf("This function only supports 24-bit BMP files.\n");
         return;
     }
@@ -85,24 +85,23 @@ void print_bmp_data(uint8_t* data, int width, int height, int bitCount) {
     }
 }
 
-void write_bmp(const char *fileName, BMPFileHeader *fileHeader, BMPInfoHeader *infoHeader, uint8_t *data) {
-    FILE *file = fopen(fileName, "wb");
+void write_bmp(const char *filename, BMPFileHeader *file_header, BMPInfoHeader *info_header, uint8_t *data) {
+    FILE *file = fopen(filename, "wb");
     if (!file) {
         perror("Error opening file for writing");
         return;
     }
 
-    fwrite(fileHeader, sizeof(BMPFileHeader), 1, file);
+    fwrite(file_header, sizeof(BMPFileHeader), 1, file);
 
-    fwrite(infoHeader, sizeof(BMPInfoHeader), 1, file);
+    fwrite(info_header, sizeof(BMPInfoHeader), 1, file);
 
-    int rowSize = ((infoHeader->biWidth * 3) + 3) & ~3;
+    int row_size = ((info_header->bi_width * 3) + 3) & ~3;
 
-    for (int y = 0; y < infoHeader->biHeight; y++) {
-        fwrite(&data[y * rowSize], 1, rowSize, file);
+    for (int y = 0; y < info_header->bi_height; y++) {
+        fwrite(&data[y * row_size], 1, row_size, file);
     }
 
     fclose(file);
-    printf("BMP saved successfully: %s\n", fileName);
+    printf("BMP saved successfully: %s\n", filename);
 }
-
