@@ -2,6 +2,7 @@
 #include <file-utils.h>
 #include <stdlib.h>
 #include <string.h>
+#include "../../include/constants/error-messages.h"
 
 const char *get_file_extension(const char *filename) {
     const char *dot = strrchr(filename, '.');
@@ -23,7 +24,7 @@ size_t get_file_size(FILE *file) {
 void create_file(const char *filename) {
     FILE *file = fopen(filename, "w");
     if (file == NULL) {
-        perror("Error creating file");
+        LOG_ERROR_MSG_WITH_ERRNO(FILE_CREATE_ERROR);
         exit(1);
     }
     fclose(file);
@@ -32,7 +33,7 @@ void create_file(const char *filename) {
 void write_file(const char *filename, unsigned char *content, size_t content_length) {
     FILE *file = fopen(filename, "wb");
     if (file == NULL) {
-        perror("Error opening file for writing");
+        LOG_ERROR_MSG_WITH_ERRNO(FILE_OPEN_ERROR);
         exit(1);
     }
     fwrite(content, 1, content_length, file);

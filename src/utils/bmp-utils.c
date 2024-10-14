@@ -1,11 +1,13 @@
 #include <bmp-utils.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "../../include/bmp-utils.h"
+#include "../../include/constants/error-messages.h"
 
 void read_bmp_headers(const char *filename) {
     FILE *file = fopen(filename, "rb");
     if (!file) {
-        perror("Error opening file");
+        LOG_ERROR_MSG(FILE_OPEN_ERROR);
         return;
     }
 
@@ -15,7 +17,7 @@ void read_bmp_headers(const char *filename) {
     fread(&file_header, sizeof(BMPFileHeader), 1, file);
 
     if (file_header.bf_type != 0x4D42) {
-        printf("Not a valid BMP file.\n");
+        LOG_ERROR_MSG(INVALID_MBP_FILE);
         fclose(file);
         return;
     }
@@ -35,14 +37,14 @@ void read_bmp_headers(const char *filename) {
 uint8_t *read_bmp_data(const char *filename, BMPFileHeader *file_header, BMPInfoHeader *info_header) {
     FILE *file = fopen(filename, "rb");
     if (!file) {
-        perror("Error opening file");
+        LOG_ERROR_MSG_WITH_ERRNO(FILE_OPEN_ERROR);
         return NULL;
     }
 
     fread(file_header, sizeof(BMPFileHeader), 1, file);
 
     if (file_header->bf_type != 0x4D42) {
-        printf("Not a valid BMP file.\n");
+        LOG_ERROR_MSG(INVALID_MBP_FILE);
         fclose(file);
         return NULL;
     }
@@ -53,7 +55,7 @@ uint8_t *read_bmp_data(const char *filename, BMPFileHeader *file_header, BMPInfo
 
     uint8_t *pixelData = (uint8_t *)malloc(file_header->bf_size);
     if (!pixelData) {
-        printf("Error: Memory allocation failed!\n");
+        LOG_ERROR_MSG(MEMORY_ERROR);
         fclose(file);
         return NULL;
     }
@@ -65,9 +67,9 @@ uint8_t *read_bmp_data(const char *filename, BMPFileHeader *file_header, BMPInfo
     return pixelData;
 }
 
-void print_bmp_data(uint8_t *data, int width, int height, int bit_count) {
-    if (bit_count != 24) {
-        printf("This function only supports 24-bit BMP files.\n");
+void print_bmp_data(uint8_t* data, int width, int height, int bitCount) {
+    if (bitCount != 24) {
+        LOG_ERROR_MSG(INVALID_MBP_BIT_FILE);
         return;
     }
 
@@ -88,7 +90,7 @@ void print_bmp_data(uint8_t *data, int width, int height, int bit_count) {
 void write_bmp(const char *filename, BMPFileHeader *file_header, BMPInfoHeader *info_header, uint8_t *data) {
     FILE *file = fopen(filename, "wb");
     if (!file) {
-        perror("Error opening file for writing");
+        LOG_ERROR_MSG_WITH_ERRNO(FILE_OPEN_ERROR);
         return;
     }
 
