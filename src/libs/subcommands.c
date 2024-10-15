@@ -63,7 +63,10 @@ void embed_subcommand(ArgParser *parser) {
     }
     Argument *encryption_password_arg = find_argument(parser->current_subcommand, ARG_PASSWORD);
 
-    CipherParams *cipher_params = init_cipher_params(encryption_password_arg->value, encryption_method_arg_value, chaining_mode_arg_value);
+    CipherParams *cipher_params = NULL;
+    if (encryption_password_arg->value){
+        cipher_params = init_cipher_params(encryption_password_arg->value, encryption_method_arg_value, chaining_mode_arg_value);   
+    }
 
     // Get steganography method argument
     Argument *stego_method_arg = find_argument(parser->current_subcommand, ARG_STEGANOGRAPHY);
@@ -78,27 +81,34 @@ void embed_subcommand(ArgParser *parser) {
         exit(1);
 
     // Get payload data
+
     uint8_t *payload_data = NULL;
-    const size_t payload_data_length = fmt_data(payload_data_filepath, &payload_data);
+    size_t payload_data_length = fmt_data(payload_data_filepath, &payload_data);
 
-    // Encrypt data
-    uint8_t *encrypted_data = NULL;
-    const size_t encrypted_data_length = encrypt(cipher_params, payload_data, payload_data_length, &encrypted_data);
+    if (encryption_password_arg->value){
+        // Encrypt data
+        uint8_t *encrypted_data = NULL;
+        const size_t encrypted_data_length = encrypt(cipher_params, payload_data, payload_data_length, &encrypted_data);
 
-    // Format encrypted data
-    uint8_t *payload_encrypted_data = NULL;
-    const size_t payload_encrypted_data_length = fmt_encrypted_data(encrypted_data, encrypted_data_length, &payload_encrypted_data);
+        // Format encrypted data
+        uint8_t *payload_encrypted_data = NULL;
+        const size_t payload_encrypted_data_length = fmt_encrypted_data(encrypted_data, encrypted_data_length, &payload_encrypted_data);
+        free(encrypted_data);
+        free(payload_data);
+        payload_data = payload_encrypted_data;
+        payload_data_length = payload_encrypted_data_length;
+    }
 
     int bi_width = carrier_info_header.bi_width;
     int bi_height = carrier_info_header.bi_height;
     int bi_bit_count = carrier_info_header.bi_bit_count;
 
     if (strcmp(stego_method, "lsb1") == 0) {
-        lsb1(carrier_data, bi_width, bi_height, bi_bit_count, payload_encrypted_data, payload_encrypted_data_length);
+        lsb1(carrier_data, bi_width, bi_height, bi_bit_count, payload_data, payload_data_length);
     } else if (strcmp(stego_method, "lsb4") == 0) {
-        lsb4(carrier_data, bi_width, bi_height, bi_bit_count, payload_encrypted_data, payload_encrypted_data_length);
+        lsb4(carrier_data, bi_width, bi_height, bi_bit_count, payload_data, payload_data_length);
     } else if (strcmp(stego_method, "lsbi") == 0) {
-        lsbi(carrier_data, bi_width, bi_height, bi_bit_count, payload_encrypted_data, payload_encrypted_data_length);
+        lsbi(carrier_data, bi_width, bi_height, bi_bit_count, payload_data, payload_data_length);
     } else {
         LOG_ERROR_MSG(INVALID_STEG_METHOD);
         exit(1);
@@ -106,8 +116,6 @@ void embed_subcommand(ArgParser *parser) {
 
     write_bmp(output_filepath, &carrier_file_header, &carrier_info_header, carrier_data);
 
-    free(payload_encrypted_data);
-    free(encrypted_data);
     free(payload_data);
     free(carrier_data);
 
@@ -135,7 +143,10 @@ void extract_subcommand(ArgParser *parser) {
     }
     Argument *encryption_password_arg = find_argument(parser->current_subcommand, ARG_PASSWORD);
 
-    CipherParams *cipher_params = init_cipher_params(encryption_password_arg->value, encryption_method_arg_value, chaining_mode_arg_value);
+     CipherParams *cipher_params = NULL;
+    if (encryption_password_arg->value){
+        cipher_params = init_cipher_params(encryption_password_arg->value, encryption_method_arg_value, chaining_mode_arg_value);   
+    }
 
     // Get steganography method argument
     Argument *stego_method_arg = find_argument(parser->current_subcommand, ARG_STEGANOGRAPHY);
