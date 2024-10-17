@@ -24,8 +24,10 @@ typedef struct {
 void embed_subcommand(ArgParser *parser);
 void extract_subcommand(ArgParser *parser);
 
-void extract_encrypted_payload(ArgParser *parser);
-void extract_unencrypted_payload(ArgParser *parser);
+void extract_encrypted_payload(const unsigned char * carrier_filepath, const unsigned char * output_filename, 
+    const unsigned char * stego_method, const unsigned char * encryption_password, const unsigned char * encryption_method, 
+    const unsigned char * chaining_mode);
+void extract_unencrypted_payload(const unsigned char * carrier_filepath, const unsigned char * output_filename, const unsigned char * stego_method);
 
 SubcommandMapping subcommand_map[] = {
     {CMD_EMBED, embed_subcommand},
@@ -127,44 +129,44 @@ void embed_subcommand(ArgParser *parser) {
 }
 
 void extract_subcommand(ArgParser *parser) {
-    Argument *encryption_password_arg = find_argument(parser->current_subcommand, ARG_PASSWORD);
-    if (encryption_password_arg->value){
-        extract_encrypted_payload(parser);
-    }
-    else {
-        extract_unencrypted_payload(parser);
-    }
-}
-
-void extract_encrypted_payload(ArgParser *parser){
-     // Get file arguments
+    // Get file arguments
     Argument *carrier_filepath_arg = find_argument(parser->current_subcommand, ARG_CARRIER);
-    Argument *output_filename_arg = find_argument(parser->current_subcommand, ARG_OUTPUT);
-
     const unsigned char *carrier_filepath = (unsigned char *)carrier_filepath_arg->value;
+
+    Argument *output_filename_arg = find_argument(parser->current_subcommand, ARG_OUTPUT);
     const unsigned char *output_filename = (unsigned char *)output_filename_arg->value;
-
-    // Get encryption arguments
-    Argument *encryption_method_arg = find_argument(parser->current_subcommand, ARG_ENCRYPTION);
-    void *encryption_method_arg_value = encryption_method_arg->default_value;
-    if (encryption_method_arg->is_set) {
-        encryption_method_arg_value = encryption_method_arg->value;
-    }
-    Argument *chaining_mode_arg = find_argument(parser->current_subcommand, ARG_MODE);
-    void *chaining_mode_arg_value = chaining_mode_arg->default_value;
-    if (chaining_mode_arg->is_set) {
-        chaining_mode_arg_value = chaining_mode_arg->value;
-    }
-    Argument *encryption_password_arg = find_argument(parser->current_subcommand, ARG_PASSWORD);
-
-     CipherParams *cipher_params = NULL;
-    if (encryption_password_arg->value){
-        cipher_params = init_cipher_params(encryption_password_arg->value, encryption_method_arg_value, chaining_mode_arg_value);   
-    }
 
     // Get steganography method argument
     Argument *stego_method_arg = find_argument(parser->current_subcommand, ARG_STEGANOGRAPHY);
     const unsigned char *stego_method = (unsigned char *)stego_method_arg->value;
+
+    // Get password argument
+    Argument *encryption_password_arg = find_argument(parser->current_subcommand, ARG_PASSWORD);
+    const unsigned char * encryption_password = (unsigned char *)encryption_password_arg->value;
+
+    if (encryption_password){
+        // Get encryption arguments
+        Argument *encryption_method_arg = find_argument(parser->current_subcommand, ARG_ENCRYPTION);
+        const unsigned char *encryption_method= (unsigned char *) encryption_method_arg->default_value;
+        if (encryption_method_arg->is_set) {
+            encryption_method = (unsigned char *) encryption_method_arg->value;
+        }
+        Argument *chaining_mode_arg = find_argument(parser->current_subcommand, ARG_MODE);
+        const unsigned char  *chaining_mode = (unsigned char *) chaining_mode_arg->default_value;
+        if (chaining_mode_arg->is_set) {
+            chaining_mode = (unsigned char *) chaining_mode_arg->value;
+        }
+
+        extract_encrypted_payload(carrier_filepath, output_filename, stego_method, encryption_password, encryption_method, chaining_mode);
+    }
+    else {
+        extract_unencrypted_payload(carrier_filepath, output_filename, stego_method);
+    }
+}
+
+void extract_encrypted_payload(const unsigned char * carrier_filepath, const unsigned char * output_filename, 
+    const unsigned char * stego_method, const unsigned char * encryption_password, const unsigned char * encryption_method, 
+    const unsigned char * chaining_mode){ 
 
     // Get carrier data (carrier must be a BMP file)
     BMPFileHeader carrier_file_header;
@@ -197,6 +199,8 @@ void extract_encrypted_payload(ArgParser *parser){
     // Convert the extracted bytes to size_t
     size_t encrypted_data_length;
     memcpy(&encrypted_data_length, payload_encrypted_data_length_buffer, sizeof(size_t));
+
+    CipherParams *cipher_params = init_cipher_params(encryption_password, encryption_method, chaining_mode);  
 
     // Allocate memory for the full payload
     uint8_t *encrypted_data = (uint8_t *)malloc(encrypted_data_length);
@@ -254,18 +258,7 @@ void extract_encrypted_payload(ArgParser *parser){
 
 }
 
-void extract_unencrypted_payload(ArgParser *parser){
-    // Get file arguments
-    Argument *carrier_filepath_arg = find_argument(parser->current_subcommand, ARG_CARRIER);
-    Argument *output_filename_arg = find_argument(parser->current_subcommand, ARG_OUTPUT);
-
-    const unsigned char *carrier_filepath = (unsigned char *)carrier_filepath_arg->value;
-    const unsigned char *output_filename = (unsigned char *)output_filename_arg->value;
-
-    // Get steganography method argument
-    Argument *stego_method_arg = find_argument(parser->current_subcommand, ARG_STEGANOGRAPHY);
-    const unsigned char *stego_method = (unsigned char *)stego_method_arg->value;
-
+void extract_unencrypted_payload(const unsigned char * carrier_filepath, const unsigned char * output_filename, const unsigned char * stego_method){
     // Get carrier data (carrier must be a BMP file)
     BMPFileHeader carrier_file_header;
     BMPInfoHeader carrier_info_header;
