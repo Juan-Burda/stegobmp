@@ -19,7 +19,7 @@
 #define TOO_MANY_SUBCOMMANDS "maximum number of subcommands (%d) reached."
 #define MISSING_REQUIRED_ARGUMENT "missing required argument: '%s'."
 
-#define INVALID_STEG_METHOD "-steg: unknown value '%s'. Must be 'lsb1', 'lsb4' or 'lsbi'."
+#define INVALID_STEG_METHOD "-steg: unknown value '%s'. Must be 'LSB1', 'LSB4' or 'LSBI'."
 #define INVALID_ENC_METHOD "-a: unknown value '%s'. Must be 'aes128', 'aes192', 'aes256' or '3des'."
 #define INVALID_MODE_METHOD "-m: unknown value '%s'. Must be 'ecb', 'cfb', 'ofb' or 'cbc'."
 
