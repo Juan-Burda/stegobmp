@@ -48,30 +48,29 @@ void run_subcommand(ArgParser *parser) {
 void embed_subcommand(ArgParser *parser) {
     // Get file arguments
     Argument *carrier_filepath_arg = find_argument(parser->current_subcommand, ARG_CARRIER);
-    Argument *payload_data_filepath_arg = find_argument(parser->current_subcommand, ARG_PAYLOAD);
-    Argument *output_filepath_arg = find_argument(parser->current_subcommand, ARG_OUTPUT);
-
     const unsigned char *carrier_filepath = (unsigned char *)carrier_filepath_arg->value;
+
+    Argument *payload_data_filepath_arg = find_argument(parser->current_subcommand, ARG_PAYLOAD);
     const unsigned char *payload_data_filepath = (unsigned char *)payload_data_filepath_arg->value;
+
+    Argument *output_filepath_arg = find_argument(parser->current_subcommand, ARG_OUTPUT);
     const unsigned char *output_filepath = (unsigned char *)output_filepath_arg->value;
 
     // Get encryption arguments
     Argument *encryption_method_arg = find_argument(parser->current_subcommand, ARG_ENCRYPTION);
-    void *encryption_method_arg_value = encryption_method_arg->default_value;
+    const unsigned char * encryption_method = encryption_method_arg->default_value;
     if (encryption_method_arg->is_set) {
-        encryption_method_arg_value = encryption_method_arg->value;
+        encryption_method = encryption_method_arg->value;
     }
-    Argument *chaining_mode_arg = find_argument(parser->current_subcommand, ARG_MODE);
-    void *chaining_mode_arg_value = chaining_mode_arg->default_value;
-    if (chaining_mode_arg->is_set) {
-        chaining_mode_arg_value = chaining_mode_arg->value;
-    }
-    Argument *encryption_password_arg = find_argument(parser->current_subcommand, ARG_PASSWORD);
 
-    CipherParams *cipher_params = NULL;
-    if (encryption_password_arg->value){
-        cipher_params = init_cipher_params(encryption_password_arg->value, encryption_method_arg_value, chaining_mode_arg_value);   
+    Argument *chaining_mode_arg = find_argument(parser->current_subcommand, ARG_MODE);
+    const unsigned char * chaining_mode = chaining_mode_arg->default_value;
+    if (chaining_mode_arg->is_set) {
+        chaining_mode = chaining_mode_arg->value;
     }
+
+    Argument *encryption_password_arg = find_argument(parser->current_subcommand, ARG_PASSWORD);
+    const unsigned char * encryption_password = encryption_password_arg->value;
 
     // Get steganography method argument
     Argument *stego_method_arg = find_argument(parser->current_subcommand, ARG_STEGANOGRAPHY);
@@ -85,11 +84,20 @@ void embed_subcommand(ArgParser *parser) {
     if (!carrier_data)
         exit(1);
 
+    int bi_width = carrier_info_header.bi_width;
+    int bi_height = carrier_info_header.bi_height;
+    int bi_bit_count = carrier_info_header.bi_bit_count;
+
     // Get payload data
     uint8_t *payload_data = NULL;
     uint32_t payload_data_length = fmt_data(payload_data_filepath, &payload_data);
 
-    if (encryption_password_arg->value){
+    CipherParams *cipher_params = NULL;
+    if (encryption_password){
+        cipher_params = init_cipher_params(encryption_password_arg->value, encryption_method, chaining_mode);   
+    }
+
+    if (encryption_password){
         // Encrypt data
         uint8_t *encrypted_data = NULL;
         const uint32_t encrypted_data_length = encrypt(cipher_params, payload_data, payload_data_length, &encrypted_data);
@@ -102,10 +110,6 @@ void embed_subcommand(ArgParser *parser) {
         payload_data = payload_encrypted_data;
         payload_data_length = payload_encrypted_data_length;
     }
-
-    int bi_width = carrier_info_header.bi_width;
-    int bi_height = carrier_info_header.bi_height;
-    int bi_bit_count = carrier_info_header.bi_bit_count;
 
     if (strcmp(stego_method, STEG_LSB1) == 0) {
         lsb1(carrier_data, bi_width, bi_height, bi_bit_count, payload_data, payload_data_length);
@@ -123,7 +127,7 @@ void embed_subcommand(ArgParser *parser) {
     free(payload_data);
     free(carrier_data);
 
-    if (encryption_password_arg->value){
+    if (encryption_password){
         free_cipher_params(cipher_params);
     }
 }
@@ -199,14 +203,11 @@ void extract_encrypted_payload(const unsigned char * carrier_filepath, const uns
     uint32_t encrypted_data_length;
     memcpy(&encrypted_data_length, payload_encrypted_data_length_buffer, sizeof(uint32_t));
 
-    CipherParams *cipher_params = init_cipher_params(encryption_password, encryption_method, chaining_mode);  
-
     // Allocate memory for the full payload
     uint8_t *encrypted_data = (uint8_t *)malloc(encrypted_data_length);
     if (!encrypted_data) {
         fprintf(stderr, "Failed to allocate memory for payload\n");
         free(carrier_data);
-        free_cipher_params(cipher_params);
         exit(1);
     }
 
@@ -223,6 +224,7 @@ void extract_encrypted_payload(const unsigned char * carrier_filepath, const uns
     }
 
     // Decrypt the payload
+    CipherParams *cipher_params = init_cipher_params(encryption_password, encryption_method, chaining_mode);  
     uint8_t *payload_data = NULL;
     const long payload_data_length = decrypt(cipher_params, encrypted_data, encrypted_data_length, &payload_data);
     if (payload_data_length < 0) {
