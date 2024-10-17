@@ -24,6 +24,9 @@ typedef struct {
 void embed_subcommand(ArgParser *parser);
 void extract_subcommand(ArgParser *parser);
 
+void extract_encrypted_payload(ArgParser *parser);
+void extract_unencrypted_payload(ArgParser *parser);
+
 SubcommandMapping subcommand_map[] = {
     {CMD_EMBED, embed_subcommand},
     {CMD_EXTRACT, extract_subcommand},
@@ -81,7 +84,6 @@ void embed_subcommand(ArgParser *parser) {
         exit(1);
 
     // Get payload data
-
     uint8_t *payload_data = NULL;
     size_t payload_data_length = fmt_data(payload_data_filepath, &payload_data);
 
@@ -119,11 +121,23 @@ void embed_subcommand(ArgParser *parser) {
     free(payload_data);
     free(carrier_data);
 
-    free_cipher_params(cipher_params);
+    if (encryption_password_arg->value){
+        free_cipher_params(cipher_params);
+    }
 }
 
 void extract_subcommand(ArgParser *parser) {
-    // Get file arguments
+    Argument *encryption_password_arg = find_argument(parser->current_subcommand, ARG_PASSWORD);
+    if (encryption_password_arg->value){
+        extract_encrypted_payload(parser);
+    }
+    else {
+        extract_unencrypted_payload(parser);
+    }
+}
+
+void extract_encrypted_payload(ArgParser *parser){
+     // Get file arguments
     Argument *carrier_filepath_arg = find_argument(parser->current_subcommand, ARG_CARRIER);
     Argument *output_filename_arg = find_argument(parser->current_subcommand, ARG_OUTPUT);
 
@@ -237,4 +251,89 @@ void extract_subcommand(ArgParser *parser) {
     free(extension);
 
     free_cipher_params(cipher_params);
+
+}
+
+void extract_unencrypted_payload(ArgParser *parser){
+    // Get file arguments
+    Argument *carrier_filepath_arg = find_argument(parser->current_subcommand, ARG_CARRIER);
+    Argument *output_filename_arg = find_argument(parser->current_subcommand, ARG_OUTPUT);
+
+    const unsigned char *carrier_filepath = (unsigned char *)carrier_filepath_arg->value;
+    const unsigned char *output_filename = (unsigned char *)output_filename_arg->value;
+
+    // Get steganography method argument
+    Argument *stego_method_arg = find_argument(parser->current_subcommand, ARG_STEGANOGRAPHY);
+    const unsigned char *stego_method = (unsigned char *)stego_method_arg->value;
+
+    // Get carrier data (carrier must be a BMP file)
+    BMPFileHeader carrier_file_header;
+    BMPInfoHeader carrier_info_header;
+
+    uint8_t *carrier_data = read_bmp_data(carrier_filepath, &carrier_file_header, &carrier_info_header);
+    if (!carrier_data)
+        exit(1);
+
+    int bi_width = carrier_info_header.bi_width;
+    int bi_height = carrier_info_header.bi_height;
+    int bi_bit_count = carrier_info_header.bi_bit_count;
+
+    // Extract the payload data length
+    uint8_t payload_data_length_buffer[sizeof(size_t)];
+
+    if (strcmp(stego_method, "lsb1") == 0) {
+        lsb1_extract(carrier_data, bi_width, bi_height, bi_bit_count, payload_data_length_buffer, sizeof(size_t));
+    } else if (strcmp(stego_method, "lsb4") == 0) {
+        lsb4_extract(carrier_data, bi_width, bi_height, bi_bit_count, payload_data_length_buffer, sizeof(size_t));
+    } else if (strcmp(stego_method, "lsbi") == 0) {
+        lsbi_invert(carrier_data, bi_width, bi_height, bi_bit_count);
+        lsbi_extract(carrier_data + sizeof(uint32_t), bi_width, bi_height, bi_bit_count, payload_data_length_buffer, sizeof(size_t));
+    }
+
+    // Convert the extracted bytes to size_t
+    size_t data_length;
+    memcpy(&data_length, payload_data_length_buffer, sizeof(size_t));
+
+    // Allocate memory for the full payload
+    uint8_t *payload_data= (uint8_t *)malloc(sizeof(size_t) + data_length + 20);
+    if (!payload_data) {
+        fprintf(stderr, "Failed to allocate memory for payload\n");
+        free(carrier_data);
+        exit(1);
+    }
+
+    memcpy(payload_data, &data_length, sizeof(size_t));
+    
+    // Extract the full payload
+    if (strcmp(stego_method, "lsb1") == 0) {
+        lsb1_extract(carrier_data + sizeof(size_t) * BITS_PER_BYTE, bi_width, bi_height, bi_bit_count, payload_data + sizeof(size_t), data_length);
+    } else if (strcmp(stego_method, "lsb4") == 0) {
+        lsb4_extract(carrier_data + sizeof(size_t) * (BITS_PER_BYTE / 4), bi_width, bi_height, bi_bit_count, payload_data + sizeof(size_t), data_length);
+    } else if (strcmp(stego_method, "lsbi") == 0) {
+        lsbi_extract(carrier_data + sizeof(uint32_t) + sizeof(size_t) * (BITS_PER_BYTE + 4), bi_width, bi_height, bi_bit_count, payload_data + sizeof(size_t), data_length);
+    }
+
+    _lsb1_extract_extension(carrier_data + (sizeof(size_t) + data_length)* BITS_PER_BYTE, 
+            bi_width, bi_height, bi_bit_count, payload_data + sizeof(size_t) + data_length, BYTES_PER_PIXEL);
+
+    // Deformat the payload
+    unsigned char *data = NULL;
+    unsigned char *extension = NULL;
+    const size_t content_length = dfmt_data(payload_data, &data, &extension);
+    if (content_length < 0) {
+        fprintf(stderr, "Error: No se pudo desformatear el payload.\n");
+        free(payload_data);
+        free(carrier_data);
+        exit(1);
+    }
+
+    // Write the extracted data to a file
+    create_file(output_filename);
+    write_file(output_filename, data, content_length);
+
+    // Free memory
+    free(carrier_data);
+    free(payload_data);
+    free(data);
+    free(extension);
 }
