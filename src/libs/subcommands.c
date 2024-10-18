@@ -307,6 +307,8 @@ void extract_unencrypted_payload(const unsigned char * carrier_filepath, const u
     // Extract the full payload
     if (strcmp(stego_method, STEG_LSB1) == 0) {
         lsb1_extract(carrier_data + sizeof(uint32_t) * BITS_PER_BYTE, bi_width, bi_height, bi_bit_count, payload_data + sizeof(uint32_t), data_length);
+        _lsb1_extract_extension(carrier_data + (sizeof(uint32_t) + data_length)* BITS_PER_BYTE, 
+            bi_width, bi_height, bi_bit_count, payload_data + sizeof(uint32_t) + data_length, BYTES_PER_PIXEL);
     } else if (strcmp(stego_method, STEG_LSB4) == 0) {
         lsb4_extract(carrier_data + sizeof(uint32_t) * (BITS_PER_BYTE / 4), bi_width, bi_height, bi_bit_count, payload_data + sizeof(uint32_t), data_length);
     } else if (strcmp(stego_method, STEG_LSBI) == 0) {
@@ -316,9 +318,7 @@ void extract_unencrypted_payload(const unsigned char * carrier_filepath, const u
         exit(1);
     }
 
-    _lsb1_extract_extension(carrier_data + (sizeof(uint32_t) + data_length)* BITS_PER_BYTE, 
-            bi_width, bi_height, bi_bit_count, payload_data + sizeof(uint32_t) + data_length, BYTES_PER_PIXEL);
-
+    
     // Deformat the payload
     unsigned char *data = NULL;
     unsigned char *extension = NULL;
