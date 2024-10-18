@@ -6,104 +6,101 @@
 #include "../include/constants/bmp.h"
 #include "../include/file-utils.h"
 
-void lsb1(uint8_t* data, int width, int height, int bitCount, const char* payload, size_t payloadLength) {
-    _lsb1(data, width, height, bitCount, payload, payloadLength, BYTES_PER_PIXEL);
+void lsb1(uint8_t* data, int width, int height, int bit_count, const char* payload, size_t payload_length) {
+    _lsb1(data, width, height, bit_count, payload, payload_length, BYTES_PER_PIXEL);
 }
 
-void _lsb1(uint8_t* data, int width, int height, int bitCount, const char* payload, size_t payloadLength, const char numChannels) {
-    if (bitCount != BITS_PER_PIXEL) {
+void _lsb1(uint8_t* data, int width, int height, int bit_count, const char* payload, size_t payload_length, const char num_channels) {
+    if (bit_count != BITS_PER_PIXEL) {
         printf("This function only supports 24-bit BMP files.\n");
         exit(1);
     }
 
-    if (payloadLength * BITS_PER_BYTE > width * height * BITS_PER_PIXEL) {
+    if (payload_length * BITS_PER_BYTE > width * height * BITS_PER_PIXEL) {
         printf("Error embedding payload: payload too long.\n");
         exit(1);
     }
 
-    int rowSize = CALCULATE_ROW_SIZE(width);
-    int payloadIndex = 0;
-    int payloadBitIndex = 0;
-    uint8_t currentChar = payload[payloadIndex];
+    int row_size = CALCULATE_ROW_SIZE(width);
+    int payload_index = 0;
+    int payload_bit_index = 0;
+    uint8_t current_char = payload[payload_index];
 
-    for (int bitIndex = 0; bitIndex < (payloadLength * 8 * 8); bitIndex++) {
+    for (int byte_index = 0; byte_index < (payload_length * BITS_PER_BYTE); byte_index++) {
+        int bit_to_embed = (current_char >> payload_bit_index) & 1;
+        data[byte_index] = (data[byte_index] & 0xFE) | bit_to_embed;
+        payload_bit_index++;
 
-        int bitToEmbed = (currentChar >> payloadBitIndex) & 1;
-        data[bitIndex] = (data[bitIndex] & 0xFE) | bitToEmbed;
-        payloadBitIndex++;
-
-        if (payloadBitIndex == BITS_PER_BYTE) { 
-            payloadIndex++;   
-            if (payloadIndex >= payloadLength){
+        if (payload_bit_index == BITS_PER_BYTE) { 
+            payload_index++;   
+            if (payload_index >= payload_length){
                 return;
             }
-            currentChar = payload[payloadIndex];
-            payloadBitIndex = 0;
+            current_char = payload[payload_index];
+            payload_bit_index = 0;
         }
     }
 }
 
-void lsb1_extract(uint8_t* data, int width, int height, int bitCount, char* extractedPayload, size_t payloadLength) {
-    _lsb1_extract(data, width, height, bitCount, extractedPayload, payloadLength, BYTES_PER_PIXEL);
+void lsb1_extract(uint8_t* data, int width, int height, int bit_count, char* extracted_payload, size_t payload_length) {
+    _lsb1_extract(data, width, height, bit_count, extracted_payload, payload_length, BYTES_PER_PIXEL);
 }
 
-void _lsb1_extract(uint8_t* data, int width, int height, int bitCount, char* extractedPayload, size_t payloadLength, const char numChannels) {
-    if (bitCount != 24) {
+void _lsb1_extract(uint8_t* data, int width, int height, int bit_count, char* extracted_payload, size_t payload_length, const char num_channels) {
+    if (bit_count != 24) {
         printf("This function only supports 24-bit BMP files.\n");
         return;
     }
 
-    int rowSize = CALCULATE_ROW_SIZE(width);
-    int payloadIndex = 0;
-    int payloadBitIndex = 0;
-    uint8_t currentChar = 0;
+    int row_size = CALCULATE_ROW_SIZE(width);
+    int payload_index = 0;
+    int payload_bit_index = 0;
+    uint8_t current_char = 0;
 
-    // int maxPixelIndex = (height * rowSize) + (width * BYTES_PER_PIXEL) + BYTES_PER_PIXEL - 1;
+    for (int byte_index = 0; byte_index < (payload_length * BITS_PER_BYTE); byte_index++) {
+        uint8_t byte_value = data[byte_index];
+        int bit = byte_value & 1;
 
-    for (int byteIndex = 0; byteIndex < (payloadLength * 8 * 8); byteIndex++) {
-        uint8_t byteValue = data[byteIndex];
-        int bit = byteValue & 1;
+        current_char |= (bit << payload_bit_index);
+        payload_bit_index++;
 
-        currentChar |= (bit << payloadBitIndex);
-        payloadBitIndex++;
+        if (payload_bit_index == BITS_PER_BYTE) {
+            extracted_payload[payload_index++] = current_char;
+            payload_bit_index = 0;
+            current_char = 0;
 
-        if (payloadBitIndex == BITS_PER_BYTE) {
-            extractedPayload[payloadIndex++] = currentChar;
-            payloadBitIndex = 0;
-            currentChar = 0;
-
-            if (payloadIndex >= payloadLength) {
+            if (payload_index >= payload_length) {
                 return;
             }
         }
     }
 }
 
-void _lsb1_extract_extension(uint8_t* data, int width, int height, int bitCount, char* extractedPayload, const char numChannels) {
-    if (bitCount != 24) {
+void _lsb1_extract_extension(uint8_t* data, int width, int height, int bit_count, char* extracted_payload, const char num_channels) {
+    if (bit_count != 24) {
         printf("This function only supports 24-bit BMP files.\n");
         return;
     }
 
-    int rowSize = CALCULATE_ROW_SIZE(width);
-    int payloadIndex = 0;
-    int payloadBitIndex = 0;
-    uint8_t currentChar = 0;
+    int row_size = CALCULATE_ROW_SIZE(width);
+    int payload_index = 0;
+    int payload_bit_index = 0;
+    uint8_t current_char = 0;
 
-    for (int bitIndex = 0;; bitIndex++) {
-        uint8_t byteValue = data[bitIndex];
-        int bit = byteValue & 1;
+    for (int byte_index = 0;; byte_index++) {
+        uint8_t byte_value = data[byte_index];
+        int bit = byte_value & 1;
 
-        currentChar |= (bit << payloadBitIndex);
-        payloadBitIndex++;
+        current_char |= (bit << payload_bit_index);
+        payload_bit_index++;
 
-        if (payloadBitIndex == BITS_PER_BYTE) {
-            extractedPayload[payloadIndex++] = currentChar;
-            if (currentChar == '\0'){
+        if (payload_bit_index == BITS_PER_BYTE) {
+            extracted_payload[payload_index++] = current_char;
+            if (current_char == '\0'){
                 return;
             }
-            payloadBitIndex = 0;
-            currentChar = 0;
+            payload_bit_index = 0;
+            current_char = 0;
         }
     }
 }
