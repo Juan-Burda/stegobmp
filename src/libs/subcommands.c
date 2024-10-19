@@ -89,9 +89,12 @@ void embed_subcommand(ArgParser *parser) {
     if (!carrier_data)
         exit(1);
 
-    int bi_width = carrier_info_header.bi_width;
-    int bi_height = carrier_info_header.bi_height;
+    int total_pixels = carrier_info_header.bi_width * carrier_info_header.bi_height;
     int bi_bit_count = carrier_info_header.bi_bit_count;
+    if (bi_bit_count != BITS_PER_PIXEL) {
+        LOG_ERROR_MSG(INVALID_BMP_BIT_FILE);
+        exit(1);
+    }
 
     // Get payload data
     uint8_t *payload_data = NULL;
@@ -117,11 +120,11 @@ void embed_subcommand(ArgParser *parser) {
     }
 
     if (strcmp(stego_method, STEG_LSB1) == 0) {
-        lsb1(carrier_data, bi_width, bi_height, bi_bit_count, payload_data, payload_data_length);
+        lsb1(carrier_data, total_pixels, payload_data, payload_data_length);
     } else if (strcmp(stego_method, STEG_LSB4) == 0) {
-        lsb4(carrier_data, bi_width, bi_height, bi_bit_count, payload_data, payload_data_length);
+        lsb4(carrier_data, total_pixels, payload_data, payload_data_length);
     } else if (strcmp(stego_method, STEG_LSBI) == 0) {
-        lsbi(carrier_data, bi_width, bi_height, bi_bit_count, payload_data, payload_data_length);
+        lsbi(carrier_data, total_pixels, payload_data, payload_data_length);
     } else {
         LOG_ERROR_MSG(INVALID_STEG_METHOD);
         exit(1);
@@ -183,20 +186,23 @@ void extract_encrypted_payload(const char *carrier_filepath, const char *output_
     if (!carrier_data)
         exit(1);
 
-    int bi_width = carrier_info_header.bi_width;
-    int bi_height = carrier_info_header.bi_height;
+    int total_pixels = carrier_info_header.bi_width * carrier_info_header.bi_height;
     int bi_bit_count = carrier_info_header.bi_bit_count;
+    if (bi_bit_count != BITS_PER_PIXEL) {
+        LOG_ERROR_MSG(INVALID_BMP_BIT_FILE);
+        exit(1);
+    }
 
     // Extract the payload encrypted data length
     uint8_t payload_encrypted_data_length_buffer[sizeof(uint32_t)];
 
     if (strcmp(stego_method, STEG_LSB1) == 0) {
-        lsb1_extract(carrier_data, bi_width, bi_height, bi_bit_count, payload_encrypted_data_length_buffer, sizeof(uint32_t));
+        lsb1_extract(carrier_data, total_pixels, payload_encrypted_data_length_buffer, sizeof(uint32_t));
     } else if (strcmp(stego_method, STEG_LSB4) == 0) {
-        lsb4_extract(carrier_data, bi_width, bi_height, bi_bit_count, payload_encrypted_data_length_buffer, sizeof(uint32_t));
+        lsb4_extract(carrier_data, total_pixels, payload_encrypted_data_length_buffer, sizeof(uint32_t));
     } else if (strcmp(stego_method, STEG_LSBI) == 0) {
-        lsbi_invert(carrier_data, bi_width, bi_height, bi_bit_count);
-        lsbi_extract(carrier_data + sizeof(uint32_t), bi_width, bi_height, bi_bit_count, payload_encrypted_data_length_buffer, sizeof(uint32_t));
+        lsbi_invert(carrier_data, total_pixels);
+        lsbi_extract(carrier_data + sizeof(uint32_t), total_pixels, payload_encrypted_data_length_buffer, sizeof(uint32_t));
     } else {
         LOG_ERROR_MSG(INVALID_STEG_METHOD);
         exit(1);
@@ -217,11 +223,11 @@ void extract_encrypted_payload(const char *carrier_filepath, const char *output_
 
     // Extract the full payload
     if (strcmp(stego_method, STEG_LSB1) == 0) {
-        lsb1_extract(carrier_data + sizeof(uint32_t) * BITS_PER_BYTE, bi_width, bi_height, bi_bit_count, encrypted_data, encrypted_data_length);
+        lsb1_extract(carrier_data + sizeof(uint32_t) * BITS_PER_BYTE, total_pixels, encrypted_data, encrypted_data_length);
     } else if (strcmp(stego_method, STEG_LSB4) == 0) {
-        lsb4_extract(carrier_data + sizeof(uint32_t) * (BITS_PER_BYTE / 4), bi_width, bi_height, bi_bit_count, encrypted_data, encrypted_data_length);
+        lsb4_extract(carrier_data + sizeof(uint32_t) * (BITS_PER_BYTE / 4), total_pixels, encrypted_data, encrypted_data_length);
     } else if (strcmp(stego_method, STEG_LSBI) == 0) {
-        lsbi_extract(carrier_data + sizeof(uint32_t) + sizeof(uint32_t) * (BITS_PER_BYTE + 4), bi_width, bi_height, bi_bit_count, encrypted_data, encrypted_data_length);
+        lsbi_extract(carrier_data + sizeof(uint32_t) + sizeof(uint32_t) * (BITS_PER_BYTE + 4), total_pixels, encrypted_data, encrypted_data_length);
     } else {
         LOG_ERROR_MSG(INVALID_STEG_METHOD);
         exit(1);
@@ -242,7 +248,7 @@ void extract_encrypted_payload(const char *carrier_filepath, const char *output_
     // Deformat the payload
     unsigned char *data = NULL;
     unsigned char *extension = NULL;
-    const uint32_t data_length = dfmt_data(payload_data, &data, &extension);
+    const uint32_t data_length = dfmt_prev_encrypted_data(payload_data, &data, &extension);
     if (data_length < 0) {
         fprintf(stderr, "Error: No se pudo desformatear el payload.\n");
         free(encrypted_data);
@@ -274,21 +280,24 @@ void extract_unencrypted_payload(const char *carrier_filepath, const char *outpu
     if (!carrier_data)
         exit(1);
 
-    int bi_width = carrier_info_header.bi_width;
-    int bi_height = carrier_info_header.bi_height;
+    int total_pixels = carrier_info_header.bi_width * carrier_info_header.bi_height;
     int bi_bit_count = carrier_info_header.bi_bit_count;
+    if (bi_bit_count != BITS_PER_PIXEL) {
+        LOG_ERROR_MSG(INVALID_BMP_BIT_FILE);
+        exit(1);
+    }
 
     // Extract the payload data length
     uint8_t payload_data_length_buffer[sizeof(uint32_t)] = {0};
 
     uint32_t size = 0;
     if (strcmp(stego_method, STEG_LSB1) == 0) {
-        lsb1_extract(carrier_data, bi_width, bi_height, bi_bit_count, payload_data_length_buffer, sizeof(uint32_t));
+        lsb1_extract(carrier_data, total_pixels, payload_data_length_buffer, sizeof(uint32_t));
     } else if (strcmp(stego_method, STEG_LSB4) == 0) {
-        lsb4_extract(carrier_data, bi_width, bi_height, bi_bit_count, payload_data_length_buffer, sizeof(uint32_t));
+        lsb4_extract(carrier_data, total_pixels, payload_data_length_buffer, sizeof(uint32_t));
     } else if (strcmp(stego_method, STEG_LSBI) == 0) {
-        lsbi_invert(carrier_data, bi_width, bi_height, bi_bit_count);
-        lsbi_extract(carrier_data + sizeof(uint32_t), bi_width, bi_height, bi_bit_count, payload_data_length_buffer, sizeof(uint32_t));
+        lsbi_invert(carrier_data, total_pixels);
+        lsbi_extract(carrier_data + sizeof(uint32_t), total_pixels, payload_data_length_buffer, sizeof(uint32_t));
     } else {
         LOG_ERROR_MSG(INVALID_STEG_METHOD);
         exit(1);
@@ -312,29 +321,30 @@ void extract_unencrypted_payload(const char *carrier_filepath, const char *outpu
     // Extract the full payload
     if (strcmp(stego_method, STEG_LSB1) == 0) {
         int offset = sizeof(uint32_t) * BITS_PER_BYTE;
-        lsb1_extract(carrier_data + offset, bi_width, bi_height, bi_bit_count, payload_data + sizeof(uint32_t), data_length);
+        lsb1_extract(carrier_data + offset, total_pixels, payload_data + sizeof(uint32_t), data_length);
 
         offset += data_length * BITS_PER_BYTE;
-        _lsb1_extract_extension(carrier_data + offset,
-                                bi_width, bi_height, bi_bit_count, payload_data + sizeof(uint32_t) + data_length, BYTES_PER_PIXEL);
+        lsb1_extract_extension(carrier_data + offset,
+                               total_pixels,
+                               payload_data + sizeof(uint32_t) + data_length);
     } else if (strcmp(stego_method, STEG_LSB4) == 0) {
         int offset = sizeof(uint32_t) * (BITS_PER_BYTE / 4);
-        lsb4_extract(carrier_data + offset, bi_width, bi_height, bi_bit_count, payload_data + sizeof(uint32_t), data_length);
+        lsb4_extract(carrier_data + offset, total_pixels, payload_data + sizeof(uint32_t), data_length);
 
         offset += data_length * (BITS_PER_BYTE / 4);
-        _lsb4_extract_extension(carrier_data + offset,
-                                bi_width, bi_height, bi_bit_count, payload_data + sizeof(uint32_t) + data_length, BYTES_PER_PIXEL);
+        lsb4_extract_extension(carrier_data + offset,
+                               total_pixels,
+                               payload_data + sizeof(uint32_t) + data_length);
     } else if (strcmp(stego_method, STEG_LSBI) == 0) {
         int offset = sizeof(uint32_t) + sizeof(uint32_t) * (BITS_PER_BYTE + 4);
-        lsbi_extract(carrier_data + offset, bi_width, bi_height, bi_bit_count, payload_data + sizeof(uint32_t), data_length);
+        lsbi_extract(carrier_data + offset, total_pixels, payload_data + sizeof(uint32_t), data_length);
 
         offset += data_length * (BITS_PER_BYTE + 4);
         Color start_color = get_color_from_byte_index(offset);
-        _lsbi_extract_extension(carrier_data + offset,
-                                bi_width, bi_height, bi_bit_count,
-                                payload_data + sizeof(uint32_t) + data_length,
-                                BYTES_PER_PIXEL,
-                                start_color);
+        lsbi_extract_extension(carrier_data + offset,
+                               total_pixels,
+                               payload_data + sizeof(uint32_t) + data_length,
+                               start_color);
     } else {
         LOG_ERROR_MSG(INVALID_STEG_METHOD);
         exit(1);

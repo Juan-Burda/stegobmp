@@ -7,17 +7,8 @@
 #include "../include/constants/bmp.h"
 #include "../include/file-utils.h"
 
-void lsb1(uint8_t* data, int width, int height, int bit_count, const uint8_t* payload, size_t payload_length) {
-    _lsb1(data, width, height, bit_count, payload, payload_length, BYTES_PER_PIXEL);
-}
-
-void _lsb1(uint8_t* data, int width, int height, int bit_count, const uint8_t* payload, size_t payload_length, const char num_channels) {
-    if (bit_count != BITS_PER_PIXEL) {
-        printf("This function only supports 24-bit BMP files.\n");
-        exit(1);
-    }
-
-    if (payload_length * BITS_PER_BYTE > width * height * BITS_PER_PIXEL) {
+void lsb1(uint8_t* data, int total_pixels, const uint8_t* payload, size_t payload_length) {
+    if (payload_length * BITS_PER_BYTE > total_pixels * BITS_PER_PIXEL) {
         printf("Error embedding payload: payload too long.\n");
         exit(1);
     }
@@ -41,16 +32,7 @@ void _lsb1(uint8_t* data, int width, int height, int bit_count, const uint8_t* p
     }
 }
 
-void lsb1_extract(uint8_t* data, int width, int height, int bit_count, uint8_t* extracted_payload, size_t payload_length) {
-    _lsb1_extract(data, width, height, bit_count, extracted_payload, payload_length, BYTES_PER_PIXEL);
-}
-
-void _lsb1_extract(uint8_t* data, int width, int height, int bit_count, uint8_t* extracted_payload, size_t payload_length, const char num_channels) {
-    if (bit_count != 24) {
-        printf("This function only supports 24-bit BMP files.\n");
-        return;
-    }
-
+void lsb1_extract(uint8_t* data, int total_pixels, uint8_t* extracted_payload, size_t payload_length) {
     int payload_index = 0;
     int payload_bit_index = 0;
     uint8_t current_char = 0;
@@ -69,12 +51,7 @@ void _lsb1_extract(uint8_t* data, int width, int height, int bit_count, uint8_t*
     }
 }
 
-void _lsb1_extract_extension(uint8_t* data, int width, int height, int bit_count, uint8_t* extracted_payload, const char num_channels) {
-    if (bit_count != 24) {
-        printf("This function only supports 24-bit BMP files.\n");
-        return;
-    }
-
+void lsb1_extract_extension(uint8_t* data, int total_pixels, uint8_t* extracted_payload) {
     int payload_index = 0;
     int payload_bit_index = 0;
     uint8_t current_char = 0;

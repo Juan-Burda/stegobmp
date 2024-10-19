@@ -1,8 +1,7 @@
 #include <bmp-utils.h>
+#include <constants/error-messages.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "../../include/bmp-utils.h"
-#include "../../include/constants/error-messages.h"
 
 void read_bmp_headers(const char *filename) {
     FILE *file = fopen(filename, "rb");
@@ -17,7 +16,7 @@ void read_bmp_headers(const char *filename) {
     fread(&file_header, sizeof(BMPFileHeader), 1, file);
 
     if (file_header.bf_type != 0x4D42) {
-        LOG_ERROR_MSG(INVALID_MBP_FILE);
+        LOG_ERROR_MSG(INVALID_BMP_FILE);
         fclose(file);
         return;
     }
@@ -44,7 +43,7 @@ uint8_t *read_bmp_data(const char *filename, BMPFileHeader *file_header, BMPInfo
     fread(file_header, sizeof(BMPFileHeader), 1, file);
 
     if (file_header->bf_type != 0x4D42) {
-        LOG_ERROR_MSG(INVALID_MBP_FILE);
+        LOG_ERROR_MSG(INVALID_BMP_FILE);
         fclose(file);
         return NULL;
     }
@@ -67,9 +66,9 @@ uint8_t *read_bmp_data(const char *filename, BMPFileHeader *file_header, BMPInfo
     return pixelData;
 }
 
-void print_bmp_data(uint8_t* data, int width, int height, int bitCount) {
+void print_bmp_data(uint8_t *data, int width, int height, int bitCount) {
     if (bitCount != 24) {
-        LOG_ERROR_MSG(INVALID_MBP_BIT_FILE);
+        LOG_ERROR_MSG(INVALID_BMP_BIT_FILE);
         return;
     }
 

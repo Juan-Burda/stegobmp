@@ -70,6 +70,31 @@ uint32_t dfmt_data(unsigned char *payload_data, unsigned char **content, unsigne
     uint32_t file_size = 0;
 
     memcpy(&file_size, payload_data, sizeof(uint32_t));
+
+    *content = (unsigned char *)malloc(file_size);
+    if (*content == NULL) {
+        perror("Memory allocation failed");
+        return -1;
+    }
+    memcpy(*content, payload_data + sizeof(uint32_t), file_size);
+
+    unsigned char *extension_pos = payload_data + sizeof(uint32_t) + file_size;
+    uint32_t extension_length = strlen((char *)extension_pos) + 1;
+    *extension = (unsigned char *)malloc(extension_length);
+    if (*extension == NULL) {
+        perror("Memory allocation failed");
+        return -1;
+    }
+
+    memcpy(*extension, extension_pos, extension_length);
+
+    return file_size;
+}
+
+uint32_t dfmt_prev_encrypted_data(unsigned char *payload_data, unsigned char **content, unsigned char **extension) {
+    uint32_t file_size = 0;
+
+    memcpy(&file_size, payload_data, sizeof(uint32_t));
     file_size = be32toh(file_size);  // !!
 
     *content = (unsigned char *)malloc(file_size);

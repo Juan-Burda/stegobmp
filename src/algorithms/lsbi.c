@@ -12,12 +12,13 @@
 #define PATTERN_QTY 4
 #define GET_PATTERN(byte) ((byte >> 1) & 3)
 
-static void _lsb1_no_red(uint8_t* data, int width, int height, int bit_count, const uint8_t* payload, size_t payload_length, Color start_color);
+/**
+ * @brief Embed a payload in a BMP image using the LSB1 algorithm but without modifying the red channel.
+ */
+static void _lsb1_no_red(uint8_t* data, int total_pixels, const uint8_t* payload, size_t payload_length, Color start_color);
 
-void lsbi(uint8_t* data, int width, int height, int bit_count, const uint8_t* payload, size_t payload_length) {
-    if (bit_count != BITS_PER_PIXEL) return;
-
-    int total_bytes = width * height * BYTES_PER_PIXEL;
+void lsbi(uint8_t* data, int total_pixels, const uint8_t* payload, size_t payload_length) {
+    int total_bytes = total_pixels * BYTES_PER_PIXEL;
 
     // Before embedding, store original LSBs
     uint8_t* original_lsbs = (uint8_t*)malloc(total_bytes);
@@ -27,7 +28,7 @@ void lsbi(uint8_t* data, int width, int height, int bit_count, const uint8_t* pa
 
     // Apply standard LSB
     Color start_color = get_color_from_byte_index(sizeof(uint32_t));
-    _lsb1_no_red(data + sizeof(uint32_t), width, height, bit_count, payload, payload_length, start_color);
+    _lsb1_no_red(data + sizeof(uint32_t), total_pixels, payload, payload_length, start_color);
 
     // Count patterns and changed pixels for each pattern (00, 01, 10, 11)
     int pattern_count[PATTERN_QTY] = {0};    // Count of 00, 01, 10, 11 patterns
@@ -66,19 +67,14 @@ void lsbi(uint8_t* data, int width, int height, int bit_count, const uint8_t* pa
     free(original_lsbs);
 }
 
-void lsbi_invert(uint8_t* data, int width, int height, int bit_count) {
-    if (bit_count != 24) {
-        printf("This function only supports 24-bit BMP files.\n");
-        return;
-    }
-
+void lsbi_invert(uint8_t* data, int total_pixels) {
     // Extract the inversion pattern from the first 4 bytes
     bool invert_pattern[PATTERN_QTY] = {false};
     for (int i = 0; i < PATTERN_QTY; i++) {
         invert_pattern[i] = (data[i] & 1) != false;
     }
 
-    int total_bytes = width * height * BYTES_PER_PIXEL;
+    int total_bytes = total_pixels * BYTES_PER_PIXEL;
 
     int payload_index = 0;
     int payload_bit_index = 0;
@@ -96,12 +92,7 @@ void lsbi_invert(uint8_t* data, int width, int height, int bit_count) {
     }
 }
 
-void lsbi_extract(uint8_t* data, int width, int height, int bit_count, uint8_t* extracted_payload, size_t payload_length) {
-    if (bit_count != 24) {
-        printf("This function only supports 24-bit BMP files.\n");
-        return;
-    }
-
+void lsbi_extract(uint8_t* data, int total_pixels, uint8_t* extracted_payload, size_t payload_length) {
     int payload_index = 0;
     int payload_bit_index = 0;
     uint8_t current_char = 0;
@@ -127,12 +118,7 @@ void lsbi_extract(uint8_t* data, int width, int height, int bit_count, uint8_t* 
     }
 }
 
-void _lsbi_extract_extension(uint8_t* data, int width, int height, int bit_count, uint8_t* extracted_payload, const char num_channels, Color start_color) {
-    if (bit_count != 24) {
-        printf("This function only supports 24-bit BMP files.\n");
-        return;
-    }
-
+void lsbi_extract_extension(uint8_t* data, int total_pixels, uint8_t* extracted_payload, Color start_color) {
     int payload_index = 0;
     int payload_bit_index = 0;
     uint8_t current_char = 0;
@@ -162,7 +148,7 @@ void _lsbi_extract_extension(uint8_t* data, int width, int height, int bit_count
     }
 }
 
-static void _lsb1_no_red(uint8_t* data, int width, int height, int bit_count, const uint8_t* payload, size_t payload_length, Color start_color) {
+static void _lsb1_no_red(uint8_t* data, int total_pixels, const uint8_t* payload, size_t payload_length, Color start_color) {
     int payload_index = 0;
     int payload_bit_index = 0;
     uint8_t current_char = payload[payload_index];

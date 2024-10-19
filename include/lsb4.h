@@ -5,10 +5,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void lsb4(uint8_t* data, int width, int height, int bit_count, const uint8_t* payload, size_t payload_length);
+void lsb4(uint8_t* data, int total_pixels, const uint8_t* payload, size_t payload_length);
 
-void lsb4_extract(uint8_t* data, int width, int height, int bit_count, uint8_t* extracted_payload, size_t payload_length);
+void lsb4_extract(uint8_t* data, int total_pixels, uint8_t* extracted_payload, size_t payload_length);
 
-void _lsb4_extract_extension(uint8_t* data, int width, int height, int bit_count, uint8_t* extracted_payload, const char num_channels);
+void lsb4_extract_extension(uint8_t* data, int total_pixels, uint8_t* extracted_payload);
 
 #endif  // LSB4_H
