@@ -12,43 +12,32 @@
 #define PATTERN_QTY 4
 #define GET_PATTERN(byte) ((byte >> 1) & 3)
 
+static void _lsb1_no_red(uint8_t* data, int width, int height, int bit_count, const uint8_t* payload, size_t payload_length, Color start_color);
+
 void lsbi(uint8_t* data, int width, int height, int bit_count, const uint8_t* payload, size_t payload_length) {
     if (bit_count != BITS_PER_PIXEL) return;
 
-    int total_pixels = width * height;
+    int total_bytes = width * height * BYTES_PER_PIXEL;
 
     // Before embedding, store original LSBs
-    int row_size = CALCULATE_ROW_SIZE(width);
-    uint8_t* original_lsbs = (uint8_t*)malloc(width * height * BYTES_PER_PIXEL);
-    int lsb_index = 0;
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-            int pixel_index = (y * row_size) + (x * BYTES_PER_PIXEL);
-            for (int color = 0; color < BYTES_PER_PIXEL; color++) {
-                original_lsbs[lsb_index++] = data[pixel_index + color] & 1;
-            }
-        }
+    uint8_t* original_lsbs = (uint8_t*)malloc(total_bytes);
+    for (int byte_index = 0; byte_index < total_bytes; byte_index++) {
+        original_lsbs[byte_index] = get_i_bit(data[byte_index], 0);
     }
 
     // Apply standard LSB
-    _lsb1(data + sizeof(uint32_t), width, height, bit_count, payload, payload_length, BYTES_PER_PIXEL - 1);
+    Color start_color = get_color_from_byte_index(sizeof(uint32_t));
+    _lsb1_no_red(data + sizeof(uint32_t), width, height, bit_count, payload, payload_length, start_color);
 
     // Count patterns and changed pixels for each pattern (00, 01, 10, 11)
     int pattern_count[PATTERN_QTY] = {0};    // Count of 00, 01, 10, 11 patterns
     int pattern_changed[PATTERN_QTY] = {0};  // Count of changed pixels for each pattern
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-            int pixel_index = (y * row_size) + (x * BYTES_PER_PIXEL);
+    for (int byte_index = 0; byte_index < total_bytes; byte_index++) {
+        int pattern = GET_PATTERN(data[byte_index]);
 
-            for (int color = 0; color < BYTES_PER_PIXEL - 1; color++) {  // Only Green and Blue channels
-                int byte_index = pixel_index + color;
-                int pattern = GET_PATTERN(data[byte_index]);
-
-                pattern_count[pattern]++;
-                if ((data[byte_index] & 1) != (original_lsbs[byte_index] & 1)) {
-                    pattern_changed[pattern]++;
-                }
-            }
+        pattern_count[pattern]++;
+        if ((data[byte_index] & 1) != (original_lsbs[byte_index] & 1)) {
+            pattern_changed[pattern]++;
         }
     }
 
@@ -61,20 +50,11 @@ void lsbi(uint8_t* data, int width, int height, int bit_count, const uint8_t* pa
     }
 
     // Apply inversion
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-            int pixel_index = (y * row_size) + (x * BYTES_PER_PIXEL);
+    for (int byte_index = PATTERN_QTY - 1; byte_index < total_bytes; byte_index++) {
+        int pattern = GET_PATTERN(data[byte_index]);
 
-            for (int color = 0; color < BYTES_PER_PIXEL - 1; color++) {  // Only Green and Blue channels
-                int byte_index = pixel_index + color;
-                if (byte_index < sizeof(uint32_t)) continue;  // Skip the first 4 bytes
-
-                int pattern = GET_PATTERN(data[byte_index]);
-
-                if (invert_pattern[pattern]) {
-                    data[byte_index] ^= 1;  // Invert LSB
-                }
-            }
+        if (invert_pattern[pattern]) {
+            data[byte_index] ^= 1;  // Invert LSB
         }
     }
 
@@ -157,7 +137,7 @@ void _lsbi_extract_extension(uint8_t* data, int width, int height, int bit_count
     int payload_bit_index = 0;
     uint8_t current_char = 0;
     Color current_color = start_color;
-    for (uint32_t data_index = 0;;data_index++) {
+    for (uint32_t data_index = 0;; data_index++) {
         Color prev_color = current_color;
         current_color = get_next_color(current_color);
         if (prev_color == RED) {
@@ -178,6 +158,33 @@ void _lsbi_extract_extension(uint8_t* data, int width, int height, int bit_count
 
             payload_bit_index = 0;
             current_char = 0;
+        }
+    }
+}
+
+static void _lsb1_no_red(uint8_t* data, int width, int height, int bit_count, const uint8_t* payload, size_t payload_length, Color start_color) {
+    int payload_index = 0;
+    int payload_bit_index = 0;
+    uint8_t current_char = payload[payload_index];
+    Color current_color = start_color;
+    for (int byte_index = 0; payload_index < payload_length; byte_index++) {
+        Color prev_color = current_color;
+        current_color = get_next_color(current_color);
+        if (prev_color == RED) {
+            continue;
+        }
+
+        int bit_to_embed = get_i_bit(current_char, BITS_PER_BYTE - 1 - payload_bit_index);
+        data[byte_index] = (data[byte_index] & 0xFE) | bit_to_embed;
+        payload_bit_index++;
+
+        if (payload_bit_index == BITS_PER_BYTE) {
+            payload_index++;
+            if (payload_index >= payload_length) {
+                return;
+            }
+            current_char = payload[payload_index];
+            payload_bit_index = 0;
         }
     }
 }
