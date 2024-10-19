@@ -2,7 +2,7 @@
 #define CLI_ARGUMENTS_H
 
 #define MAX_ARGS 16
-#define MAX_ARG_LEN 32
+#define MAX_ARG_LEN 256
 #define MAX_SUBCOMMANDS 2
 
 #define CMD_EMBED "-embed"
@@ -34,4 +34,4 @@
 #define MODE_OFB "ofb"
 #define MODE_CBC "cbc"
 
-#endif // CLI_ARGUMENTS_H
+#endif  // CLI_ARGUMENTS_H

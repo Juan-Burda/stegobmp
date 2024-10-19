@@ -70,6 +70,7 @@ uint32_t dfmt_data(unsigned char *payload_data, unsigned char **content, unsigne
     uint32_t file_size = 0;
 
     memcpy(&file_size, payload_data, sizeof(uint32_t));
+    file_size = be32toh(file_size);  // !!
 
     *content = (unsigned char *)malloc(file_size);
     if (*content == NULL) {

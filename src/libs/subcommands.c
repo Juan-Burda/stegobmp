@@ -204,6 +204,7 @@ void extract_encrypted_payload(const char *carrier_filepath, const char *output_
 
     // Convert the extracted bytes to uint32_t
     uint32_t encrypted_data_length;
+    to_big_endian(payload_encrypted_data_length_buffer, sizeof(uint32_t));
     memcpy(&encrypted_data_length, payload_encrypted_data_length_buffer, sizeof(uint32_t));
 
     // Allocate memory for the full payload
