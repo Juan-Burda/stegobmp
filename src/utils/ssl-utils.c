@@ -11,19 +11,19 @@
 CipherEntry cipher_functions[] = {
     {"aes128-ecb", EVP_aes_128_ecb},
     {"aes128-cbc", EVP_aes_128_cbc},
-    {"aes128-cfb", EVP_aes_128_cfb},
+    {"aes128-cfb", EVP_aes_128_cfb8},
     {"aes128-ofb", EVP_aes_128_ofb},
     {"aes192-ecb", EVP_aes_192_ecb},
     {"aes192-cbc", EVP_aes_192_cbc},
-    {"aes192-cfb", EVP_aes_192_cfb},
+    {"aes192-cfb", EVP_aes_192_cfb8},
     {"aes192-ofb", EVP_aes_192_ofb},
     {"aes256-ecb", EVP_aes_256_ecb},
     {"aes256-cbc", EVP_aes_256_cbc},
-    {"aes256-cfb", EVP_aes_256_cfb},
+    {"aes256-cfb", EVP_aes_256_cfb8},
     {"aes256-ofb", EVP_aes_256_ofb},
     {"3des-ecb", EVP_des_ede3_ecb},
     {"3des-cbc", EVP_des_ede3_cbc},
-    {"3des-cfb", EVP_des_ede3_cfb},
+    {"3des-cfb", EVP_des_ede3_cfb8},
     {"3des-ofb", EVP_des_ede3_ofb},
     {NULL, NULL}};
 
