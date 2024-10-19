@@ -3,6 +3,7 @@
 #include <bmp-utils.h>
 #include <bmp.h>
 #include <byte-utils.h>
+#include <color-utils.h>
 #include <constants/error-messages.h>
 #include <endian.h>
 #include <file-utils.h>
@@ -309,15 +310,30 @@ void extract_unencrypted_payload(const char *carrier_filepath, const char *outpu
 
     // Extract the full payload
     if (strcmp(stego_method, STEG_LSB1) == 0) {
-        lsb1_extract(carrier_data + sizeof(uint32_t) * BITS_PER_BYTE, bi_width, bi_height, bi_bit_count, payload_data + sizeof(uint32_t), data_length);
-        _lsb1_extract_extension(carrier_data + (sizeof(uint32_t) + data_length) * BITS_PER_BYTE,
+        int offset = sizeof(uint32_t) * BITS_PER_BYTE;
+        lsb1_extract(carrier_data + offset, bi_width, bi_height, bi_bit_count, payload_data + sizeof(uint32_t), data_length);
+
+        offset += data_length * BITS_PER_BYTE;
+        _lsb1_extract_extension(carrier_data + offset,
                                 bi_width, bi_height, bi_bit_count, payload_data + sizeof(uint32_t) + data_length, BYTES_PER_PIXEL);
     } else if (strcmp(stego_method, STEG_LSB4) == 0) {
-        lsb4_extract(carrier_data + sizeof(uint32_t) * (BITS_PER_BYTE / 4), bi_width, bi_height, bi_bit_count, payload_data + sizeof(uint32_t), data_length);
-        _lsb4_extract_extension(carrier_data + (sizeof(uint32_t) + data_length) * (BITS_PER_BYTE / 4),
+        int offset = sizeof(uint32_t) * (BITS_PER_BYTE / 4);
+        lsb4_extract(carrier_data + offset, bi_width, bi_height, bi_bit_count, payload_data + sizeof(uint32_t), data_length);
+
+        offset += data_length * (BITS_PER_BYTE / 4);
+        _lsb4_extract_extension(carrier_data + offset,
                                 bi_width, bi_height, bi_bit_count, payload_data + sizeof(uint32_t) + data_length, BYTES_PER_PIXEL);
     } else if (strcmp(stego_method, STEG_LSBI) == 0) {
-        lsbi_extract(carrier_data + sizeof(uint32_t) + sizeof(uint32_t) * (BITS_PER_BYTE + 4), bi_width, bi_height, bi_bit_count, payload_data + sizeof(uint32_t), data_length);
+        int offset = sizeof(uint32_t) + sizeof(uint32_t) * (BITS_PER_BYTE + 4);
+        lsbi_extract(carrier_data + offset, bi_width, bi_height, bi_bit_count, payload_data + sizeof(uint32_t), data_length);
+
+        offset += data_length * (BITS_PER_BYTE + 4);
+        Color start_color = get_color_from_byte_index(offset);
+        _lsbi_extract_extension(carrier_data + offset,
+                                bi_width, bi_height, bi_bit_count,
+                                payload_data + sizeof(uint32_t) + data_length,
+                                BYTES_PER_PIXEL,
+                                start_color);
     } else {
         LOG_ERROR_MSG(INVALID_STEG_METHOD);
         exit(1);
