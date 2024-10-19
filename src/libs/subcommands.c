@@ -1,5 +1,6 @@
 #include <bmp-utils.h>
 #include <bmp.h>
+#include <byte-utils.h>
 #include <constants/error-messages.h>
 #include <file-utils.h>
 #include <fmt-utils.h>
@@ -290,6 +291,7 @@ void extract_unencrypted_payload(const char *carrier_filepath, const char *outpu
 
     // Convert the extracted bytes to uint32_t
     uint32_t data_length;
+    to_big_endian(payload_data_length_buffer, sizeof(uint32_t));  // !!
     memcpy(&data_length, payload_data_length_buffer, sizeof(uint32_t));
 
     // Allocate memory for the full payload

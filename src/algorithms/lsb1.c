@@ -56,10 +56,11 @@ void _lsb1_extract(uint8_t* data, int width, int height, int bit_count, uint8_t*
     int payload_index = 0;
     int payload_bit_index = 0;
     uint8_t current_char = 0;
-    for (int data_index = 0; payload_index < payload_length; data_index++) {
-        int bit = get_i_bit(data[data_index], 0);
+    for (uint32_t data_index = 0; payload_index < payload_length; data_index++) {
+        uint8_t bit = get_i_bit(data[data_index], 0);
 
-        current_char |= (bit << payload_bit_index);
+        current_char <<= 1;
+        current_char |= bit;
         payload_bit_index++;
 
         if (payload_bit_index % BITS_PER_BYTE == 0) {

@@ -1,6 +1,7 @@
 #ifndef _BYTE_UTILS_H
 #define _BYTE_UTILS_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 /**
@@ -12,5 +13,10 @@
  * @return The i-th bit of the byte.
  */
 uint8_t get_i_bit(uint8_t byte, int i);
+
+/**
+ * Transform a byte array to big-endian.
+ */
+void to_big_endian(uint8_t *data, size_t size);
 
 #endif  // _BYTE_UTILS_H
