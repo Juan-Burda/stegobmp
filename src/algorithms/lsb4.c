@@ -48,26 +48,49 @@ void lsb4_extract(uint8_t* data, int width, int height, int bit_count, uint8_t* 
         return;
     }
 
-    int row_size = CALCULATE_ROW_SIZE(width);
     int payload_index = 0;
     int payload_bit_index = 0;
     uint8_t current_char = 0;
+    for (uint32_t data_index = 0; payload_index < payload_length; data_index++) {
+        uint8_t bits = data[data_index] & 0xF;
 
-    for (int byte_index = 0; byte_index < (payload_length * (BITS_PER_BYTE / 2)); byte_index++) {
-        int bits = data[byte_index] & 0xF;
-
-        current_char |= (bits << payload_bit_index);
+        current_char <<= 4;
+        current_char |= bits;
         payload_bit_index += 4;
 
-        if (payload_bit_index >= BITS_PER_BYTE) {
+        if (payload_bit_index % BITS_PER_BYTE == 0) {
             extracted_payload[payload_index++] = current_char;
+            payload_bit_index = 0;
+            current_char = 0;
+        }
+    }
+}
+
+void _lsb4_extract_extension(uint8_t* data, int width, int height, int bit_count, uint8_t* extracted_payload, const char num_channels) {
+    if (bit_count != 24) {
+        printf("This function only supports 24-bit BMP files.\n");
+        return;
+    }
+
+    int payload_index = 0;
+    int payload_bit_index = 0;
+    uint8_t current_char = 0;
+    for (uint32_t data_index = 0;; data_index++) {
+        uint8_t bits = data[data_index] & 0xF;
+
+        current_char <<= 4;
+        current_char |= bits;
+        payload_bit_index += 4;
+
+        if (payload_bit_index % BITS_PER_BYTE == 0) {
+            extracted_payload[payload_index++] = current_char;
+
+            if (current_char == '\0') {
+                return;
+            }
 
             payload_bit_index = 0;
             current_char = 0;
-
-            if (payload_index >= payload_length) {
-                break;
-            }
         }
     }
 }

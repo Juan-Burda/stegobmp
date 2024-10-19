@@ -311,6 +311,8 @@ void extract_unencrypted_payload(const char *carrier_filepath, const char *outpu
                                 bi_width, bi_height, bi_bit_count, payload_data + sizeof(uint32_t) + data_length, BYTES_PER_PIXEL);
     } else if (strcmp(stego_method, STEG_LSB4) == 0) {
         lsb4_extract(carrier_data + sizeof(uint32_t) * (BITS_PER_BYTE / 4), bi_width, bi_height, bi_bit_count, payload_data + sizeof(uint32_t), data_length);
+        _lsb4_extract_extension(carrier_data + (sizeof(uint32_t) + data_length) * (BITS_PER_BYTE / 4),
+                                bi_width, bi_height, bi_bit_count, payload_data + sizeof(uint32_t) + data_length, BYTES_PER_PIXEL);
     } else if (strcmp(stego_method, STEG_LSBI) == 0) {
         lsbi_extract(carrier_data + sizeof(uint32_t) + sizeof(uint32_t) * (BITS_PER_BYTE + 4), bi_width, bi_height, bi_bit_count, payload_data + sizeof(uint32_t), data_length);
     } else {

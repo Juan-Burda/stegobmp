@@ -9,4 +9,6 @@ void lsb4(uint8_t* data, int width, int height, int bit_count, const uint8_t* pa
 
 void lsb4_extract(uint8_t* data, int width, int height, int bit_count, uint8_t* extracted_payload, size_t payload_length);
 
+void _lsb4_extract_extension(uint8_t* data, int width, int height, int bit_count, uint8_t* extracted_payload, const char num_channels);
+
 #endif  // LSB4_H
