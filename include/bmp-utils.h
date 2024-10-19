@@ -18,9 +18,7 @@ typedef struct {
     unsigned short bf_reserved2;  // Reserved, should be 0
     unsigned int bf_off_bits;     // Offset to image data (pixel array)
 } BMPFileHeader;
-#pragma pack(pop)
 
-#pragma pack(push, 1)
 // BMP Info Header (40 bytes)
 typedef struct {
     unsigned int bi_size;           // Size of the info header (40 bytes)

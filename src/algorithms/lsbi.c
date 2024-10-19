@@ -10,7 +10,7 @@
 #define PATTERN_QTY 4
 #define GET_PATTERN(byte) ((byte >> 1) & 3)
 
-void lsbi(uint8_t* data, int width, int height, int bit_count, const char* payload, size_t payload_length) {
+void lsbi(uint8_t* data, int width, int height, int bit_count, const uint8_t* payload, size_t payload_length) {
     if (bit_count != BITS_PER_PIXEL) return;
 
     int total_pixels = width * height;
@@ -122,6 +122,6 @@ void lsbi_invert(uint8_t* data, int width, int height, int bit_count) {
     }
 }
 
-void lsbi_extract(uint8_t* data, int width, int height, int bit_count, char* extracted_payload, size_t payload_length) {
+void lsbi_extract(uint8_t* data, int width, int height, int bit_count, uint8_t* extracted_payload, size_t payload_length) {
     _lsb1_extract(data, width, height, bit_count, extracted_payload, payload_length, BYTES_PER_PIXEL - 1);
 }
