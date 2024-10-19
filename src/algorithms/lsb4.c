@@ -1,5 +1,6 @@
 #include <bmp-headers.h>
 #include <bmp-utils.h>
+#include <byte-utils.h>
 #include <constants/bmp.h>
 #include <file-utils.h>
 #include <lsb4.h>
@@ -12,19 +13,17 @@ void lsb4(uint8_t* data, int width, int height, int bit_count, const uint8_t* pa
         exit(1);
     }
 
-    if (payload_length * BITS_PER_BYTE > width * height * BITS_PER_PIXEL) {
+    if (payload_length * (BITS_PER_BYTE / 4) > width * height * BITS_PER_PIXEL) {
         printf("Error embedding payload: payload too long.\n");
         exit(1);
     }
 
-    int row_size = CALCULATE_ROW_SIZE(width);
     int payload_index = 0;
-    int payload_bit_index = 0;
+    int payload_nibble_index = 0;  // 0 to 1
     uint8_t current_char = payload[payload_index];
-
-    for (int byte_index = 0; byte_index < (payload_length * (BITS_PER_BYTE / 2)); byte_index++) {
-        if (payload_bit_index == BITS_PER_BYTE) {
-            payload_bit_index = 0;
+    for (int byte_index = 0; payload_index < payload_length; byte_index++) {
+        if (payload_nibble_index == NIBBLES_PER_BYTE) {
+            payload_nibble_index = 0;
             payload_index++;
 
             if (payload_index < payload_length) {
@@ -34,11 +33,10 @@ void lsb4(uint8_t* data, int width, int height, int bit_count, const uint8_t* pa
             }
         }
 
-        int bits_to_embed = (current_char >> payload_bit_index) & 0xF;
+        uint8_t bits_to_embed = get_i_nibble(current_char, NIBBLES_PER_BYTE - 1 - payload_nibble_index);
 
         data[byte_index] = (data[byte_index] & 0xF0) | bits_to_embed;
-
-        payload_bit_index += 4;
+        payload_nibble_index++;
     }
 }
 

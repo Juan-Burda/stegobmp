@@ -15,6 +15,16 @@
 uint8_t get_i_bit(uint8_t byte, int i);
 
 /**
+ * Get the i-th nibble of a byte, starting from the rightmost nibble.
+ * 
+ * @param byte The byte to extract the nibble from.
+ * @param i The index of the nibble to extract. Must be between 0 and 1.
+ * 
+ * @return The i-th nibble of the byte.
+ */
+uint8_t get_i_nibble(uint8_t byte, uint8_t i);
+
+/**
  * Transform a byte array to big-endian.
  */
 void to_big_endian(uint8_t *data, size_t size);

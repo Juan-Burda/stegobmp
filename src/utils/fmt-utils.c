@@ -1,4 +1,7 @@
+#define _DEFAULT_SOURCE
+
 #include <constants/bmp.h>
+#include <endian.h>
 #include <file-utils.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,7 +13,11 @@ uint32_t fmt_encrypted_data(const uint8_t *encrypted_data, uint32_t encrypted_da
         perror("Memory allocation failed");
         return -1;
     }
-    memcpy(*payload_encrypted_data, &encrypted_data_length, sizeof(uint32_t));
+
+    uint32_t be_encrypted_data_length = encrypted_data_length;
+    be_encrypted_data_length = htobe32(be_encrypted_data_length);  // !!
+    memcpy(*payload_encrypted_data, &be_encrypted_data_length, sizeof(uint32_t));
+
     memcpy(*payload_encrypted_data + sizeof(uint32_t), encrypted_data, encrypted_data_length);
 
     return totalSize;
@@ -46,7 +53,9 @@ uint32_t fmt_data(const char *filename, uint8_t **payload_data) {
         return -1;
     }
 
-    memcpy(*payload_data, &file_size, sizeof(uint32_t));
+    uint32_t be_file_size = file_size;
+    be_file_size = htobe32(be_file_size);  // !!
+    memcpy(*payload_data, &be_file_size, sizeof(uint32_t));
     fread(*payload_data + sizeof(uint32_t), 1, file_size, file);
     memcpy(*payload_data + sizeof(uint32_t) + file_size, extension, ext_size);
 

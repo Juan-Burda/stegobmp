@@ -22,13 +22,11 @@ void _lsb1(uint8_t* data, int width, int height, int bit_count, const uint8_t* p
         exit(1);
     }
 
-    int row_size = CALCULATE_ROW_SIZE(width);
     int payload_index = 0;
     int payload_bit_index = 0;
     uint8_t current_char = payload[payload_index];
-
-    for (int byte_index = 0; byte_index < (payload_length * BITS_PER_BYTE); byte_index++) {
-        int bit_to_embed = (current_char >> payload_bit_index) & 1;
+    for (int byte_index = 0; payload_index < payload_length; byte_index++) {
+        int bit_to_embed = get_i_bit(current_char, BITS_PER_BYTE - 1 - payload_bit_index);
         data[byte_index] = (data[byte_index] & 0xFE) | bit_to_embed;
         payload_bit_index++;
 
@@ -80,7 +78,7 @@ void _lsb1_extract_extension(uint8_t* data, int width, int height, int bit_count
     int payload_index = 0;
     int payload_bit_index = 0;
     uint8_t current_char = 0;
-    for (uint32_t data_index = 0 ;; data_index++) {
+    for (uint32_t data_index = 0;; data_index++) {
         uint8_t bit = get_i_bit(data[data_index], 0);
 
         current_char <<= 1;

@@ -1,7 +1,10 @@
+#define _DEFAULT_SOURCE
+
 #include <bmp-utils.h>
 #include <bmp.h>
 #include <byte-utils.h>
 #include <constants/error-messages.h>
+#include <endian.h>
 #include <file-utils.h>
 #include <fmt-utils.h>
 #include <lsb1.h>
