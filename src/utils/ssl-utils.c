@@ -21,10 +21,10 @@ CipherEntry cipher_functions[] = {
     {"aes256-cbc", EVP_aes_256_cbc},
     {"aes256-cfb", EVP_aes_256_cfb},
     {"aes256-ofb", EVP_aes_256_ofb},
-    {"des-ede3-ecb", EVP_des_ede3_ecb},
-    {"des-ede3-cbc", EVP_des_ede3_cbc},
-    {"des-ede3-cfb", EVP_des_ede3_cfb},
-    {"des-ede3-ofb", EVP_des_ede3_ofb},
+    {"3des-ecb", EVP_des_ede3_ecb},
+    {"3des-cbc", EVP_des_ede3_cbc},
+    {"3des-cfb", EVP_des_ede3_cfb},
+    {"3des-ofb", EVP_des_ede3_ofb},
     {NULL, NULL}};
 
 CipherParams *init_cipher_params(const char *password, const char *algorithm, const char *mode) {
