@@ -77,23 +77,23 @@ void _lsb1_extract_extension(uint8_t* data, int width, int height, int bit_count
         return;
     }
 
-    int row_size = CALCULATE_ROW_SIZE(width);
     int payload_index = 0;
     int payload_bit_index = 0;
     uint8_t current_char = 0;
+    for (uint32_t data_index = 0 ;; data_index++) {
+        uint8_t bit = get_i_bit(data[data_index], 0);
 
-    for (int byte_index = 0;; byte_index++) {
-        uint8_t byte_value = data[byte_index];
-        int bit = byte_value & 1;
-
-        current_char |= (bit << payload_bit_index);
+        current_char <<= 1;
+        current_char |= bit;
         payload_bit_index++;
 
-        if (payload_bit_index == BITS_PER_BYTE) {
+        if (payload_bit_index % BITS_PER_BYTE == 0) {
             extracted_payload[payload_index++] = current_char;
+
             if (current_char == '\0') {
                 return;
             }
+
             payload_bit_index = 0;
             current_char = 0;
         }
