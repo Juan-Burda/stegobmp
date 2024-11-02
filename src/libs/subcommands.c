@@ -126,7 +126,7 @@ void embed_subcommand(ArgParser *parser) {
     } else if (strcmp(stego_method, STEG_LSBI) == 0) {
         lsbi(carrier_data, total_pixels, payload_data, payload_data_length);
     } else {
-        LOG_ERROR_MSG(INVALID_STEG_METHOD);
+        LOG_ERROR_MSG_ARGS(INVALID_STEG_METHOD, stego_method);
         exit(1);
     }
 
@@ -204,7 +204,7 @@ void extract_encrypted_payload(const char *carrier_filepath, const char *output_
         lsbi_invert(carrier_data, total_pixels);
         lsbi_extract(carrier_data + sizeof(uint32_t), total_pixels, payload_encrypted_data_length_buffer, sizeof(uint32_t));
     } else {
-        LOG_ERROR_MSG(INVALID_STEG_METHOD);
+        LOG_ERROR_MSG_ARGS(INVALID_STEG_METHOD, stego_method);
         exit(1);
     }
 
@@ -229,7 +229,7 @@ void extract_encrypted_payload(const char *carrier_filepath, const char *output_
     } else if (strcmp(stego_method, STEG_LSBI) == 0) {
         lsbi_extract(carrier_data + sizeof(uint32_t) + sizeof(uint32_t) * (BITS_PER_BYTE + 4), total_pixels, encrypted_data, encrypted_data_length);
     } else {
-        LOG_ERROR_MSG(INVALID_STEG_METHOD);
+        LOG_ERROR_MSG_ARGS(INVALID_STEG_METHOD, stego_method);
         exit(1);
     }
 
@@ -290,7 +290,6 @@ void extract_unencrypted_payload(const char *carrier_filepath, const char *outpu
     // Extract the payload data length
     uint8_t payload_data_length_buffer[sizeof(uint32_t)] = {0};
 
-    uint32_t size = 0;
     if (strcmp(stego_method, STEG_LSB1) == 0) {
         lsb1_extract(carrier_data, total_pixels, payload_data_length_buffer, sizeof(uint32_t));
     } else if (strcmp(stego_method, STEG_LSB4) == 0) {
@@ -299,7 +298,7 @@ void extract_unencrypted_payload(const char *carrier_filepath, const char *outpu
         lsbi_invert(carrier_data, total_pixels);
         lsbi_extract(carrier_data + sizeof(uint32_t), total_pixels, payload_data_length_buffer, sizeof(uint32_t));
     } else {
-        LOG_ERROR_MSG(INVALID_STEG_METHOD);
+        LOG_ERROR_MSG_ARGS(INVALID_STEG_METHOD, stego_method);
         exit(1);
     }
 
@@ -346,7 +345,7 @@ void extract_unencrypted_payload(const char *carrier_filepath, const char *outpu
                                payload_data + sizeof(uint32_t) + data_length,
                                start_color);
     } else {
-        LOG_ERROR_MSG(INVALID_STEG_METHOD);
+        LOG_ERROR_MSG_ARGS(INVALID_STEG_METHOD, stego_method);
         exit(1);
     }
 

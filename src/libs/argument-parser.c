@@ -17,7 +17,7 @@ ArgParser* create_parser() {
 
 Subcommand* add_subcommand(ArgParser *parser, const char *name) {
     if (parser->subcommand_count >= 2) {
-        LOG_ERROR_MSG(TOO_MANY_SUBCOMMANDS, MAX_SUBCOMMANDS);
+        LOG_ERROR_MSG_ARGS(TOO_MANY_SUBCOMMANDS, MAX_SUBCOMMANDS);
         return NULL;
     }
 
@@ -85,7 +85,7 @@ int parse_arguments(ArgParser *parser, int argc, char *argv[]) {
     }
 
     if (!parser->current_subcommand) {
-        LOG_ERROR_MSG(UNKNOWN_SUBCOMMAND, argv[1]);
+        LOG_ERROR_MSG_ARGS(UNKNOWN_SUBCOMMAND, argv[1]);
         return ERROR;
     }
 
@@ -116,22 +116,22 @@ int parse_arguments(ArgParser *parser, int argc, char *argv[]) {
                         }
                         if (!found_choice){
                             if (strcmp(arg->name, ARG_STEGANOGRAPHY) == 0){
-                                LOG_ERROR_MSG(INVALID_STEG_METHOD, arg->value);
+                                LOG_ERROR_MSG_ARGS(INVALID_STEG_METHOD, (char *)arg->value);
                                 return ERROR;
                             }
                             if (strcmp(arg->name, ARG_ENCRYPTION) == 0){
-                                LOG_ERROR_MSG(INVALID_ENC_METHOD, arg->value);
+                                LOG_ERROR_MSG_ARGS(INVALID_ENC_METHOD, (char *)arg->value);
                                 return ERROR;
                             }
                             if (strcmp(arg->name, ARG_MODE) == 0){
-                                LOG_ERROR_MSG(INVALID_MODE_METHOD, arg->value);
+                                LOG_ERROR_MSG_ARGS(INVALID_MODE_METHOD, (char *)arg->value);
                                 return ERROR;
                             }
                         }
                         break;
                 }
             } else {
-                LOG_ERROR_MSG(UNKNOWN_ARGUMENT, argv[i]);
+                LOG_ERROR_MSG_ARGS(UNKNOWN_ARGUMENT, argv[i]);
                 return ERROR;
             }
         }
@@ -140,7 +140,7 @@ int parse_arguments(ArgParser *parser, int argc, char *argv[]) {
     for (int i = 0; i < parser->current_subcommand->arg_count; i++) {
         Argument *arg = &parser->current_subcommand->args[i];
         if (arg->is_required && !arg->is_set) {
-            LOG_ERROR_MSG(MISSING_REQUIRED_ARGUMENT, arg->name);
+            LOG_ERROR_MSG_ARGS(MISSING_REQUIRED_ARGUMENT, arg->name);
             return ERROR;
         }
     }

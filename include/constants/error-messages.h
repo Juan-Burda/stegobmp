@@ -5,10 +5,12 @@
 #include <stdio.h>
 #include <string.h>
 
-#define LOG_ERROR_MSG(fmt, ...) fprintf(stderr, "stegobmp: " fmt "\n", ##__VA_ARGS__)
-#define LOG_ERROR_MSG_WITH_ERRNO(fmt, ...)                \
+#define LOG_ERROR_MSG(fmt) fprintf(stderr, "stegobmp: " fmt "\n")
+#define LOG_ERROR_MSG_ARGS(fmt, ...) fprintf(stderr, "stegobmp: " fmt "\n", ##__VA_ARGS__)
+
+#define LOG_ERROR_MSG_WITH_ERRNO(fmt)                     \
     do {                                                  \
-        fprintf(stderr, "stegobmp: " fmt, ##__VA_ARGS__); \
+        fprintf(stderr, "stegobmp: " fmt);                \
         fprintf(stderr, "%s\n", strerror(errno));         \
     } while (0)
 

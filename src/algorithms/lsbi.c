@@ -76,9 +76,6 @@ void lsbi_invert(uint8_t* data, int total_pixels) {
 
     int total_bytes = total_pixels * BYTES_PER_PIXEL;
 
-    int payload_index = 0;
-    int payload_bit_index = 0;
-    uint8_t current_char = 0;
     for (int byte_index = PATTERN_QTY - 1; byte_index < total_bytes; byte_index++) {
         int pattern = GET_PATTERN(data[byte_index]);
         int bit = get_i_bit(data[byte_index], 0);
