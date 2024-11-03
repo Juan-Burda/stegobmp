@@ -15,6 +15,9 @@ After that, run `make all` from the root directory.
 
 ### Compile using Docker
 
+> [!NOTE]
+> Before running the project with Docker, it is recommended that you create a `resources/` directory in the project root and use it to put the images you use and generate using the program.
+
 To run the project normally run:
 
 ```bash
