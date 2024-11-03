@@ -257,9 +257,20 @@ void extract_encrypted_payload(const char *carrier_filepath, const char *output_
         exit(1);
     }
 
+    // Append extension to output filename
+    char *output_filename_with_extension = (char *)malloc(strlen(output_filename) + strlen((char*) extension) + 1);
+    if (output_filename_with_extension == NULL) {
+        free(encrypted_data);
+        free(carrier_data);
+        free_cipher_params(cipher_params);
+        exit(1);
+    }
+
+    sprintf(output_filename_with_extension, "%s%s", output_filename, extension);
+
     // Write the extracted data to a file
-    create_file(output_filename);
-    write_file(output_filename, data, data_length);
+    create_file(output_filename_with_extension);
+    write_file(output_filename_with_extension, data, data_length);
 
     // Free memory
     free(encrypted_data);
@@ -267,6 +278,7 @@ void extract_encrypted_payload(const char *carrier_filepath, const char *output_
     free(payload_data);
     free(data);
     free(extension);
+    free(output_filename_with_extension);
 
     free_cipher_params(cipher_params);
 }
@@ -360,13 +372,23 @@ void extract_unencrypted_payload(const char *carrier_filepath, const char *outpu
         exit(1);
     }
 
+    // Append extension to output filename
+    char *output_filename_with_extension = (char *)malloc(strlen(output_filename) + strlen((char*) extension) + 1);
+    if (output_filename_with_extension == NULL) {
+        free(carrier_data);
+        exit(1);
+    }
+
+    sprintf(output_filename_with_extension, "%s%s", output_filename, extension);
+
     // Write the extracted data to a file
-    create_file(output_filename);
-    write_file(output_filename, data, content_length);
+    create_file(output_filename_with_extension);
+    write_file(output_filename_with_extension, data, data_length);
 
     // Free memory
     free(carrier_data);
     free(payload_data);
     free(data);
     free(extension);
+    free(output_filename_with_extension);
 }
