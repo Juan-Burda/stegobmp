@@ -6,10 +6,12 @@
 #include <lsb4.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <constants/error-messages.h>
 
 void lsb4(uint8_t* data, int total_pixels, const uint8_t* payload, size_t payload_length) {
-    if (payload_length * (BITS_PER_BYTE / 4) > total_pixels * BITS_PER_PIXEL) {
-        printf("Error embedding payload: payload too long.\n");
+    
+    if (payload_length * (BITS_PER_BYTE / 4) > total_pixels * BYTES_PER_PIXEL) {
+        LOG_ERROR_MSG(PAYLOAD_TOO_LONG);
         exit(1);
     }
 

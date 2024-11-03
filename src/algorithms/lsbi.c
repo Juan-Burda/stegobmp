@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <constants/error-messages.h>
 
 #define PATTERN_QTY 4
 #define GET_PATTERN(byte) ((byte >> 1) & 3)
@@ -18,8 +19,9 @@
 static void _lsb1_no_red(uint8_t* data, int total_pixels, const uint8_t* payload, size_t payload_length, Color start_color);
 
 void lsbi(uint8_t* data, int total_pixels, const uint8_t* payload, size_t payload_length) {
-    if (payload_length * (BITS_PER_BYTE + 4) > total_pixels * BITS_PER_PIXEL) {
-        printf("Error embedding payload: payload too long.\n");
+    
+    if (payload_length * (BITS_PER_BYTE + 4) > total_pixels * BYTES_PER_PIXEL) {
+        LOG_ERROR_MSG(PAYLOAD_TOO_LONG);
         exit(1);
     }
 
