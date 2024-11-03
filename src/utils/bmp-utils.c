@@ -104,5 +104,5 @@ void write_bmp(const char *filename, BMPFileHeader *file_header, BMPInfoHeader *
     }
 
     fclose(file);
-    printf("BMP saved successfully: %s\n", filename);
+    printf("stegobmp.sh: BMP saved successfully: %s\n", filename);
 }
