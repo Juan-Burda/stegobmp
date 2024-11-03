@@ -18,6 +18,11 @@
 static void _lsb1_no_red(uint8_t* data, int total_pixels, const uint8_t* payload, size_t payload_length, Color start_color);
 
 void lsbi(uint8_t* data, int total_pixels, const uint8_t* payload, size_t payload_length) {
+    if (payload_length * (BITS_PER_BYTE + 4) > total_pixels * BITS_PER_PIXEL) {
+        printf("Error embedding payload: payload too long.\n");
+        exit(1);
+    }
+
     int total_bytes = total_pixels * BYTES_PER_PIXEL;
 
     // Before embedding, store original LSBs
