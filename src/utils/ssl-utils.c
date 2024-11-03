@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string-utils.h>
 #include <string.h>
+#include <constants/error-messages.h>
 
 #define MAX_PASSWORD_LEN 64
 #define SALT_LEN 8
@@ -31,7 +32,7 @@ CipherParams *init_cipher_params(const char *password, const char *algorithm, co
     // Allocate space for the parameters
     CipherParams *params = (CipherParams *)malloc(sizeof(CipherParams));
     if (params == NULL) {
-        fprintf(stderr, "Memory allocation failed\n");
+        LOG_ERROR_MSG(MEMORY_ERROR);
         exit(1);
     }
 
@@ -47,7 +48,7 @@ CipherParams *init_cipher_params(const char *password, const char *algorithm, co
     const int keylen = EVP_CIPHER_key_length(params->cipher);
     params->key = (uint8_t *)malloc(keylen);
     if (params->key == NULL) {
-        fprintf(stderr, "Memory allocation failed\n");
+        LOG_ERROR_MSG(MEMORY_ERROR);
         free_cipher_params(params);
         exit(1);
     }
@@ -55,7 +56,7 @@ CipherParams *init_cipher_params(const char *password, const char *algorithm, co
     const int ivlen = EVP_CIPHER_iv_length(params->cipher);
     params->iv = (uint8_t *)malloc(ivlen);
     if (params->iv == NULL) {
-        fprintf(stderr, "Memory allocation failed\n");
+        LOG_ERROR_MSG(MEMORY_ERROR);
         free_cipher_params(params);
         exit(1);
     }
@@ -96,13 +97,13 @@ const EVP_CIPHER *get_cipher(const char *algorithm, const char *mode) {
 int encrypt(const CipherParams *params, const uint8_t *plaintext, const int plaintext_len, uint8_t **ciphertext) {
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
     if (ctx == NULL) {
-        fprintf(stderr, "Error creating cipher context\n");
+        LOG_ERROR_MSG(CIPHER_CONTEXT_ERROR);
         exit(1);
     }
 
     const EVP_CIPHER *cipher = params->cipher;
     if (1 != EVP_EncryptInit_ex(ctx, cipher, NULL, params->key, params->iv)) {
-        fprintf(stderr, "Error initializing encryption\n");
+        LOG_ERROR_MSG(ENCRYPTION_INITIALIZE_ERROR);
         EVP_CIPHER_CTX_free(ctx);
         exit(1);
     }
@@ -112,13 +113,13 @@ int encrypt(const CipherParams *params, const uint8_t *plaintext, const int plai
     int max_ciphertext_len = plaintext_len + EVP_CIPHER_block_size(cipher);
     *ciphertext = malloc(max_ciphertext_len);
     if (*ciphertext == NULL) {
-        fprintf(stderr, "Error allocating memory for ciphertext\n");
+        LOG_ERROR_MSG(CIPHERTEXT_ALLOCATION_ERROR);
         EVP_CIPHER_CTX_free(ctx);
         return -1;
     }
 
     if (1 != EVP_EncryptUpdate(ctx, *ciphertext, &len, plaintext, plaintext_len)) {
-        fprintf(stderr, "Error encrypting data\n");
+        LOG_ERROR_MSG(ENCRYPT_DATA_ERROR);
         EVP_CIPHER_CTX_free(ctx);
         free(*ciphertext);
         return -1;
@@ -126,7 +127,7 @@ int encrypt(const CipherParams *params, const uint8_t *plaintext, const int plai
     ciphertext_len = len;
 
     if (1 != EVP_EncryptFinal_ex(ctx, *ciphertext + len, &len)) {
-        fprintf(stderr, "Error finalizing encryption\n");
+        LOG_ERROR_MSG(ENCRYPTION_FINALIZE_ERROR);
         EVP_CIPHER_CTX_free(ctx);
         free(*ciphertext);
         exit(1);
@@ -141,13 +142,13 @@ int encrypt(const CipherParams *params, const uint8_t *plaintext, const int plai
 int decrypt(const CipherParams *params, const uint8_t *ciphertext, const int ciphertext_len, uint8_t **plaintext) {
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
     if (ctx == NULL) {
-        fprintf(stderr, "Error creating cipher context\n");
+        LOG_ERROR_MSG(CIPHER_CONTEXT_ERROR);
         return -1;
     }
 
     const EVP_CIPHER *cipher = params->cipher;
     if (1 != EVP_DecryptInit_ex(ctx, cipher, NULL, params->key, params->iv)) {
-        fprintf(stderr, "Error initializing decryption\n");
+        LOG_ERROR_MSG(DECRYPTION_INITIALIZE_ERROR);
         EVP_CIPHER_CTX_free(ctx);
         return -1;
     }
@@ -156,13 +157,13 @@ int decrypt(const CipherParams *params, const uint8_t *ciphertext, const int cip
     int plaintext_len = 0;
     *plaintext = malloc(ciphertext_len);
     if (*plaintext == NULL) {
-        fprintf(stderr, "Error allocating memory for plaintext\n");
+        LOG_ERROR_MSG(PLAINTEXT_ALLOCATION_ERROR);
         EVP_CIPHER_CTX_free(ctx);
         return -1;
     }
 
     if (1 != EVP_DecryptUpdate(ctx, *plaintext, &len, ciphertext, ciphertext_len)) {
-        fprintf(stderr, "Error decrypting data\n");
+        LOG_ERROR_MSG(DECRYPT_DATA_ERROR);
         EVP_CIPHER_CTX_free(ctx);
         free(*plaintext);
         return -1;
@@ -170,7 +171,7 @@ int decrypt(const CipherParams *params, const uint8_t *ciphertext, const int cip
     plaintext_len = len;
 
     if (1 != EVP_DecryptFinal_ex(ctx, *plaintext + len, &len)) {
-        fprintf(stderr, "Error finalizing decryption\n");
+        LOG_ERROR_MSG(DECRYPTION_FINALIZE_ERROR);
         EVP_CIPHER_CTX_free(ctx);
         free(*plaintext);
         return -1;

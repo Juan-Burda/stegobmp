@@ -32,4 +32,20 @@
 
 #define MEMORY_ERROR "memory allocation failed!"
 
+#define MEMORY_PAYLOAD "failed to allocate memory for payload"
+#define DMFT_PAYLOAD "cannot deformat payload"
+#define DECRYPT_PAYLOAD "cannot decrypt payload"
+
+#define CIPHER_CONTEXT_ERROR "error creating cipher context"
+
+#define ENCRYPTION_INITIALIZE_ERROR "error initializing encryption"
+#define CIPHERTEXT_ALLOCATION_ERROR "error allocating memory for ciphertext"
+#define ENCRYPT_DATA_ERROR "error encrypting data"
+#define ENCRYPTION_FINALIZE_ERROR "error finalizing encryption"
+
+#define DECRYPTION_INITIALIZE_ERROR "error initializing decryption"
+#define PLAINTEXT_ALLOCATION_ERROR "error allocating memory for plaintext"
+#define DECRYPT_DATA_ERROR "error decrypting data"
+#define DECRYPTION_FINALIZE_ERROR "error finalizing decryption"
+
 #endif  // ERROR_MESSAGES_H

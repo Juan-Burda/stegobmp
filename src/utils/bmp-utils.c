@@ -54,7 +54,7 @@ uint8_t *read_bmp_data(const char *filename, BMPFileHeader *file_header, BMPInfo
 
     uint8_t *pixelData = (uint8_t *)malloc(file_header->bf_size);
     if (!pixelData) {
-        LOG_ERROR_MSG(MEMORY_ERROR);
+        LOG_ERROR_MSG_WITH_ERRNO(MEMORY_ERROR);
         fclose(file);
         return NULL;
     }

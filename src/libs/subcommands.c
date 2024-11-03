@@ -216,7 +216,7 @@ void extract_encrypted_payload(const char *carrier_filepath, const char *output_
     // Allocate memory for the full payload
     uint8_t *encrypted_data = (uint8_t *)malloc(encrypted_data_length);
     if (!encrypted_data) {
-        fprintf(stderr, "Failed to allocate memory for payload\n");
+        LOG_ERROR_MSG(MEMORY_PAYLOAD);
         free(carrier_data);
         exit(1);
     }
@@ -238,7 +238,7 @@ void extract_encrypted_payload(const char *carrier_filepath, const char *output_
     uint8_t *payload_data = NULL;
     const long payload_data_length = decrypt(cipher_params, encrypted_data, encrypted_data_length, &payload_data);
     if (payload_data_length < 0) {
-        fprintf(stderr, "Error: No se pudo descifrar el payload.\n");
+        LOG_ERROR_MSG(DECRYPT_PAYLOAD);
         free(encrypted_data);
         free(carrier_data);
         free_cipher_params(cipher_params);
@@ -250,7 +250,7 @@ void extract_encrypted_payload(const char *carrier_filepath, const char *output_
     unsigned char *extension = NULL;
     const uint32_t data_length = dfmt_prev_encrypted_data(payload_data, &data, &extension);
     if (data_length < 0) {
-        fprintf(stderr, "Error: No se pudo desformatear el payload.\n");
+        LOG_ERROR_MSG(DMFT_PAYLOAD);
         free(encrypted_data);
         free(carrier_data);
         free_cipher_params(cipher_params);
@@ -310,7 +310,7 @@ void extract_unencrypted_payload(const char *carrier_filepath, const char *outpu
     // Allocate memory for the full payload
     uint8_t *payload_data = (uint8_t *)malloc(sizeof(uint32_t) + data_length + 20);
     if (!payload_data) {
-        fprintf(stderr, "Failed to allocate memory for payload\n");
+        LOG_ERROR_MSG(MEMORY_PAYLOAD);
         free(carrier_data);
         exit(1);
     }
@@ -354,7 +354,7 @@ void extract_unencrypted_payload(const char *carrier_filepath, const char *outpu
     unsigned char *extension = NULL;
     const uint32_t content_length = dfmt_data(payload_data, &data, &extension);
     if (content_length < 0) {
-        fprintf(stderr, "Error: No se pudo desformatear el payload.\n");
+        LOG_ERROR_MSG(DMFT_PAYLOAD);
         free(payload_data);
         free(carrier_data);
         exit(1);

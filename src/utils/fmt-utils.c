@@ -5,12 +5,13 @@
 #include <file-utils.h>
 #include <stdlib.h>
 #include <string.h>
+#include <error-messages.h>
 
 uint32_t fmt_encrypted_data(const uint8_t *encrypted_data, uint32_t encrypted_data_length, uint8_t **payload_encrypted_data) {
     uint32_t totalSize = sizeof(uint32_t) + encrypted_data_length;
     *payload_encrypted_data = (uint8_t *)malloc(totalSize);
     if (payload_encrypted_data == NULL) {
-        perror("Memory allocation failed");
+        LOG_ERROR_MSG_WITH_ERRNO(MEMORY_ERROR);
         return -1;
     }
 
@@ -26,7 +27,7 @@ uint32_t fmt_encrypted_data(const uint8_t *encrypted_data, uint32_t encrypted_da
 unsigned char *dfmt_encrypted_payload(const char *encryptedPayload, uint32_t *encryptedPayloadLength) {
     unsigned char *payload = (unsigned char *)malloc(*encryptedPayloadLength);
     if (payload == NULL) {
-        perror("Memory allocation failed");
+        LOG_ERROR_MSG_WITH_ERRNO(MEMORY_ERROR);
         return NULL;
     }
 
@@ -37,7 +38,7 @@ unsigned char *dfmt_encrypted_payload(const char *encryptedPayload, uint32_t *en
 uint32_t fmt_data(const char *filename, uint8_t **payload_data) {
     FILE *file = fopen(filename, "rb");
     if (file == NULL) {
-        perror("Error opening file");
+        LOG_ERROR_MSG_WITH_ERRNO(FILE_OPEN_ERROR);
         return -1;
     }
 
@@ -49,7 +50,7 @@ uint32_t fmt_data(const char *filename, uint8_t **payload_data) {
 
     *payload_data = (uint8_t *)malloc(total_size);
     if (*payload_data == NULL) {
-        perror("Memory allocation failed");
+        LOG_ERROR_MSG_WITH_ERRNO(MEMORY_ERROR);
         return -1;
     }
 
@@ -73,7 +74,7 @@ uint32_t dfmt_data(unsigned char *payload_data, unsigned char **content, unsigne
 
     *content = (unsigned char *)malloc(file_size);
     if (*content == NULL) {
-        perror("Memory allocation failed");
+        LOG_ERROR_MSG_WITH_ERRNO(MEMORY_ERROR);
         return -1;
     }
     memcpy(*content, payload_data + sizeof(uint32_t), file_size);
@@ -82,7 +83,7 @@ uint32_t dfmt_data(unsigned char *payload_data, unsigned char **content, unsigne
     uint32_t extension_length = strlen((char *)extension_pos) + 1;
     *extension = (unsigned char *)malloc(extension_length);
     if (*extension == NULL) {
-        perror("Memory allocation failed");
+        LOG_ERROR_MSG_WITH_ERRNO(MEMORY_ERROR);
         return -1;
     }
 
@@ -99,7 +100,7 @@ uint32_t dfmt_prev_encrypted_data(unsigned char *payload_data, unsigned char **c
 
     *content = (unsigned char *)malloc(file_size);
     if (*content == NULL) {
-        perror("Memory allocation failed");
+        LOG_ERROR_MSG_WITH_ERRNO(MEMORY_ERROR);
         return -1;
     }
     memcpy(*content, payload_data + sizeof(uint32_t), file_size);
@@ -108,7 +109,7 @@ uint32_t dfmt_prev_encrypted_data(unsigned char *payload_data, unsigned char **c
     uint32_t extension_length = strlen((char *)extension_pos) + 1;
     *extension = (unsigned char *)malloc(extension_length);
     if (*extension == NULL) {
-        perror("Memory allocation failed");
+        LOG_ERROR_MSG_WITH_ERRNO(MEMORY_ERROR);
         return -1;
     }
 
